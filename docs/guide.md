@@ -10,6 +10,9 @@ If you would rather have an AI handle setup, start with
 [the setup prompt](../prompts/setup-and-import.md). The sections below explain
 what it will do, which choices are yours, and how to check the result.
 
+For the full feature list, command explanations, and a comparison with
+Hermes-Agent, see [Features and commands](features.md).
+
 ## 1. What you are setting up
 
 Imagine you and an AI spend an afternoon fixing a document. You discover that
@@ -145,13 +148,10 @@ cd ~
 This moves Terminal to your home folder. It does not move or delete files.
 
 ```sh
-git clone --branch feat/initial-public-release https://github.com/nennchakki/portable-agent-brain.git
+git clone https://github.com/nennchakki/portable-agent-brain.git
 ```
 
 This downloads the public software into a new `portable-agent-brain` folder.
-The command names the preview branch because that is where the implementation
-is currently published. A branch is a particular line of development; you do
-not need to create one yourself.
 
 If Git says the destination already exists, stop here and check that folder.
 It may be an earlier installation or contain your changes. Do not delete it
@@ -460,6 +460,6 @@ a sanitized error. GitHub issues here are public; do not attach your library.
 | Commit / push | Record a version in local Git history / send commits to a remote destination. |
 
 This guide was checked against command-line version `0.1.0` and the
-`feat/initial-public-release` preview on **2026-09-05**. For command options
+`main` branch on **2026-09-05**. For command options
 and file formats, continue with [Getting started](getting-started.md),
 [Agent integration](agent-integration.md), and [Saving notes](automatic-capture.md).

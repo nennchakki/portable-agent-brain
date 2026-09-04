@@ -15,7 +15,6 @@ https://github.com/nennchakki/portable-agent-brain
 
 リポジトリの prompts/setup-and-import.ja.md を読み、
 「実行するAIへの指示」に従ってください。
-公開準備中でmainに実装がない場合は、feat/initial-public-releaseを確認してください。
 
 あなたが普段読む設定ファイルに共通の指示書への参照を追加し、
 利用してよい履歴を私に確認してから、最初のメモの保存まで進めてください。

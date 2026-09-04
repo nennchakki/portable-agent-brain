@@ -16,7 +16,6 @@ https://github.com/nennchakki/portable-agent-brain
 
 Read prompts/setup-and-import.md in the repository and follow
 "Instructions for the AI doing the setup."
-If main does not contain the implementation yet, check feat/initial-public-release.
 
 Add a reference to the shared instruction file in the settings you normally read.
 Ask me which history you may use, then continue through saving the first notes.

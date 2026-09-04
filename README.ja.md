@@ -6,20 +6,38 @@
 
 使うAIを替えても、知識はそのまま持っていきたい。なので、知識をAIの外にMarkdownで保存して、次のAIにも読んでもらうようにしています。
 
-## とりあえず使う
+## セットアップ：AIにこれを貼る
 
-どうせ長い説明は読まないと思うので、ひとまずこれを打ってください。
-macOSかLinuxと、Python 3.11以上が必要です。
+どうせ長い説明は読まないと思うので、使いたいAIにこれを貼ってください。ターミナルに打つコマンドではありません。
+
+```text
+Portable Agent Brainをセットアップして、今までのチャットや作業履歴から、
+次のAIにも引き継げるメモを作ってください。
+
+https://github.com/nennchakki/portable-agent-brain
+
+リポジトリの prompts/setup-and-import.ja.md を読み、
+「実行するAIへの指示」に従ってください。
+
+あなたが普段読む設定ファイルに共通の指示書への参照を追加し、
+利用してよい履歴を私に確認してから、最初のメモの保存まで進めてください。
+メモはObsidianでも関連をたどれるようにしてください。
+説明は短く、できたことと、私の操作が必要なところを最後に教えてください。
+```
+
+ファイルの読み書きとコマンド実行ができるAI向けです。できない操作は、あなたが行う手順を案内します。[英語のプロンプト](README.md#setup-paste-this-into-your-ai)・[実行するAI向けの詳しい指示](prompts/setup-and-import.ja.md)
+
+### 自分で設定するなら
+
+macOSかLinuxと、Python 3.11以上、Gitが必要です。
 
 ```sh
-git clone --branch feat/initial-public-release https://github.com/nennchakki/portable-agent-brain.git
+git clone https://github.com/nennchakki/portable-agent-brain.git
 cd portable-agent-brain
 ./brain setup
 ```
 
 あとは保存先や使うAIを選んでください。Claude CodeとCodexはここで接続できます。ほかのAIを使う場合は[接続手順](docs/agent-integration.md)をどうぞ。
-
-AIに設定と過去の履歴からのメモ作りまで任せるなら、[このプロンプト](prompts/setup-and-import.ja.md)を渡してください。Obsidianでメモ同士の関連をたどるところまで頼めます。
 
 最初は空の状態です。作業でわかったことを短いメモとして残し、次の作業では関係するメモだけをAIに読んでもらいます。
 
@@ -34,7 +52,7 @@ Obsidianで既存のメモを表示した例です。導入直後は空の状態
 - 保存したメモは、人が確認するまで参考情報として扱います。AIが勝手に作業の決まりにすることはありません。
 - CLIに履歴の自動取り込み機能はありません。`--history-source`は手順の表示だけです。上のプロンプトでは、許可した履歴をAIが読んで要約します。
 
-操作を一つずつ確認したい方は、[初心者向けの詳しい使い方](docs/guide.ja.md)へ。[英語版](docs/guide.md)もあります。技術的な説明は[導入手順](docs/getting-started.md)・[知識の保存](docs/automatic-capture.md)・[プライバシー](docs/privacy.md)をどうぞ。
+詳しい説明は、[初めての設定と使い方](docs/guide.ja.md)と[機能・コマンドの解説](docs/features.ja.md)に分けています。[Hermes-Agentとの違い](docs/features.ja.md#hermes-agentとの違い)も後者にあります。どちらも英語版へのリンク付きです。
 
 不具合や質問は[Issues](https://github.com/nennchakki/portable-agent-brain/issues)へ。秘密情報や実際の会話ログは貼らないでください。
 

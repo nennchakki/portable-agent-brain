@@ -5,19 +5,21 @@ it to an AI agent. You do not need a hosted service.
 
 If you are new to terminals, folders, or Git, start with the
 [beginner guide](guide.md) ([日本語](guide.ja.md)).
+For the complete command overview, current limits, and a comparison with Hermes Agent,
+see [Features and commands](features.md) ([日本語](features.ja.md)).
 
 ## 1. Clone the public engine
 
 ```sh
-git clone --branch feat/initial-public-release https://github.com/nennchakki/portable-agent-brain.git
+git clone https://github.com/nennchakki/portable-agent-brain.git
 cd portable-agent-brain
 ```
 
 The engine checkout is public software. Your knowledge library is a separate
 directory and should normally remain private.
 
-The implementation is currently on the preview branch shown above. For AI-assisted
-setup and notes from selected past chats, use the [setup prompt](../prompts/setup-and-import.md).
+This downloads the implementation from `main`. For AI-assisted setup and notes
+from selected past chats, use the [setup prompt](../prompts/setup-and-import.md).
 
 ## 2. Run the guided setup
 

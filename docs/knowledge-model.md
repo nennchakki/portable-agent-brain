@@ -118,7 +118,8 @@ search_include:
 - `node` points to the project's main Markdown file.
 - `always_include` is only for notes that apply to every task in the project.
 - `task_include` maps a supported task type to required note paths.
-- `search_include` limits the search area without forcing every result to be included.
+- `search_include` is currently loaded as metadata only; it does not restrict search.
+  Do not use it as an exclusion or privacy boundary.
 - `domains` provides keyword hints; it does not indicate whether a note has been verified.
 
 Unknown task types, missing paths, duplicate targets, or mismatched project
