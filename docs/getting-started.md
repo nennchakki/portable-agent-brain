@@ -1,17 +1,23 @@
 # Getting started
 
-This guide creates an empty, local knowledge library and connects it to an
-agent without making a hosted service mandatory.
+This guide creates a local folder for your notes, called a library, and connects
+it to an AI agent. You do not need a hosted service.
+
+If you are new to terminals, folders, or Git, start with the
+[beginner guide](guide.md) ([日本語](guide.ja.md)).
 
 ## 1. Clone the public engine
 
 ```sh
-git clone https://github.com/nennchakki/portable-agent-brain.git
+git clone --branch feat/initial-public-release https://github.com/nennchakki/portable-agent-brain.git
 cd portable-agent-brain
 ```
 
 The engine checkout is public software. Your knowledge library is a separate
 directory and should normally remain private.
+
+The implementation is currently on the preview branch shown above. For AI-assisted
+setup and notes from selected past chats, use the [setup prompt](../prompts/setup-and-import.md).
 
 ## 2. Run the guided setup
 
@@ -24,15 +30,15 @@ Setup covers:
 1. A default or custom knowledge-library location.
 2. The agents you want to connect.
 3. Optional installation of the `brain` command.
-4. Thin adapter installation.
+4. Installation of a short instruction file that tells the agent how to use this tool.
 5. Local-only use or an optional Git remote.
-6. An optional, explicit history-mining plan; setup does not read the source.
+6. Optional guidance for reviewing past conversations; setup does not read them.
 7. Verification and a summary of changed files.
 
 Review the prompted paths or pass explicit `--claude-file`, `--codex-file`, and
 `--generic-agents-file` targets. When setup changes an existing instruction
-file, it preserves unrelated text, creates a backup, and uses a managed,
-idempotent block.
+file, it preserves unrelated text, creates a backup, and marks the added section.
+Running setup again does not add the same section twice.
 
 Setup checks predictable conflicts before writing and rolls back its own
 configuration, adapter, and command changes on failure. Git configuration runs
@@ -71,7 +77,7 @@ on a symlink when the sandbox cannot follow the symlink target.
 ## 4. Confirm the empty library
 
 A new library contains empty folders, not user knowledge. Templates remain in
-the public engine checkout so they cannot be mistaken for canonical notes. The
+the public engine checkout so they cannot be mistaken for actual user notes. The
 initial library state should be equivalent to:
 
 ```text
@@ -84,14 +90,12 @@ Candidates: 0
 ```
 
 If you later copy `TEMPLATE.md`, `.gitkeep`, or the template library README into
-the library, validators treat them as documentation rather than knowledge
-nodes.
+the library, validators treat them as documentation rather than saved notes.
 
 ## 5. Register a project
 
 Copy the files in `templates/project/` into a new project directory in your
-private library. Replace every `replace-me` value and review all fields before
-retrieval:
+private library. Replace every `replace-me` value and review all fields before using the project in a search:
 
 ```text
 projects/<slug>/
@@ -99,17 +103,17 @@ projects/<slug>/
   project.yaml
 ```
 
-The Markdown file is the canonical project node. `project.yaml` is retrieval
-policy: it points to that node and lists any task-specific knowledge that must
-be considered.
+The Markdown file is the project's main reference note. `project.yaml`
+contains search settings: it points to that note and lists other notes that
+must be considered for particular tasks.
 
 The isolated [sample-weather-cli fixture](../examples/demo-project/README.md)
 shows a complete fictional project. It is for documentation and tests only; it
 is not installed into a new library.
 
-## 6. Retrieve bounded context
+## 6. Find notes for a task
 
-Use lexical search when you want to inspect possible matches:
+Use keyword search when you want to inspect possible matches:
 
 ```sh
 ./brain search --library "$BRAIN_LIBRARY" "cache expiry"
@@ -123,14 +127,14 @@ Use context for a specific project task:
   "debug stale cached output"
 ```
 
-Context selection starts from project policy, classifies the task, follows only
-useful relations, removes duplicate nodes, and stays within a bounded budget.
+The `context` command uses the project settings and task type to select notes,
+follows relevant links, removes duplicate results, and limits the output size.
 It does not load the whole library.
 
 Skip retrieval for tasks where prior knowledge cannot reasonably affect the
 result, such as a clear one-character typo or a deterministic rename.
 
-## 7. Capture only reusable knowledge
+## 7. Save useful findings
 
 After completing and verifying a meaningful task, submit a short structured
 summary rather than a transcript:
@@ -143,14 +147,15 @@ summary rather than a transcript:
 ```
 
 The command may return a no-knowledge result. When it saves something, it
-writes a pending candidate under `inbox/candidates/`; it does not change a
-canonical note. See [Automatic capture](automatic-capture.md).
+writes a note awaiting review under `inbox/candidates/`; it does not change
+existing notes. See [Saving notes](automatic-capture.md).
 
 ## 8. Connect agents
 
 Run setup again and select the desired integrations, or follow
 [Agent integration](agent-integration.md). Every integration points to the
-same small adapter. It must not copy the library into global instructions.
+same short instruction file, called an adapter. It must not copy your notes
+into the agent's global instructions.
 
 For an agent without a documented integration, use
 [`prompts/connect-agent.md`](../prompts/connect-agent.md).
@@ -176,7 +181,7 @@ When changing the public distribution, run:
 ./brain release-check
 ```
 
-The check is for release hygiene, not a substitute for reviewing Git history
+The check helps prevent accidental publication of private data, not a substitute for reviewing Git history
 or rotating a credential that was ever exposed. See [Privacy](privacy.md).
 
 ## Updating

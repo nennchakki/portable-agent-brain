@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
 from pathlib import Path
 
-from tests.helpers import BrainTestCase
-from tools.brain.release import load_denylist, release_check
+from tests.helpers import REPOSITORY, BrainTestCase
+from tools.brain.release import (
+    REVIEWED_IMAGE_BYTES,
+    REVIEWED_IMAGE_PATH,
+    REVIEWED_IMAGE_SHA256,
+    load_denylist,
+    release_check,
+)
 
 
 class ReleaseSafetyTests(BrainTestCase):
@@ -98,6 +105,180 @@ class ReleaseSafetyTests(BrainTestCase):
         return {
             item["check"] for item in release_check(root, denied_terms=denied_terms)["findings"]
         }
+
+    def write_reviewed_image(self, root: Path) -> Path:
+        """Copy only the exact public image into a disposable release fixture."""
+        content = (REPOSITORY / REVIEWED_IMAGE_PATH).read_bytes()
+        self.assertEqual(len(content), REVIEWED_IMAGE_BYTES)
+        self.assertEqual(hashlib.sha256(content).hexdigest(), REVIEWED_IMAGE_SHA256)
+        target = root / REVIEWED_IMAGE_PATH
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(content)
+        return target
+
+    def test_reviewed_image_requires_exact_bytes_and_emits_review_warning(self) -> None:
+        """Accept the approved image in the worktree and reachable history explicitly."""
+        root = self.create_clean_release()
+        self.write_reviewed_image(root)
+        for committed in (False, True):
+            if committed:
+                self.git(root, "add", REVIEWED_IMAGE_PATH)
+                self.git(root, "commit", "-q", "-m", "test: add reviewed image")
+            with self.subTest(committed=committed):
+                report = release_check(root)
+                self.assertTrue(report["ok"], report["findings"])
+                exceptions = [
+                    item for item in report["findings"] if "reviewed-image" in item["check"]
+                ]
+                self.assertEqual(len(exceptions), 2 if committed else 1)
+                self.assertTrue(all(item["level"] == "warning" for item in exceptions))
+                self.assertTrue(
+                    all("visual and metadata" in item["message"] for item in exceptions)
+                )
+
+    def test_changed_image_and_text_replacement_are_rejected(self) -> None:
+        """Reject hash changes, size changes, and UTF-8 replacements at the approved path."""
+        root = self.create_clean_release()
+        target = self.write_reviewed_image(root)
+        original = target.read_bytes()
+        replacements = (
+            original[:-1] + bytes([original[-1] ^ 1]),
+            original + b"x",
+            b"An ordinary text file is not the reviewed image.\n",
+        )
+        for replacement in replacements:
+            with self.subTest(size=len(replacement)):
+                target.write_bytes(replacement)
+                self.assertIn("reviewed-image", self.checks(root))
+                self.assertFalse(release_check(root)["ok"])
+        target.write_bytes(replacements[0])
+        self.git(root, "add", REVIEWED_IMAGE_PATH)
+        self.git(root, "commit", "-q", "-m", "test: add changed image")
+        target.write_bytes(original)
+        report = release_check(root)
+        self.assertFalse(report["ok"])
+        self.assertTrue(
+            any(
+                item["check"] == "git-history-reviewed-image" and item["level"] == "error"
+                for item in report["findings"]
+            )
+        )
+
+    def test_reviewed_image_at_another_path_is_rejected(self) -> None:
+        """A byte-identical image has no binary exception under another filename."""
+        root = self.create_clean_release()
+        source = self.write_reviewed_image(root)
+        other = root / "docs/images/another-image.png"
+        other.write_bytes(source.read_bytes())
+        self.assertIn("unreadable-file", self.checks(root))
+        self.git(root, "add", "docs/images")
+        self.git(root, "commit", "-q", "-m", "test: add image alias")
+        checks = self.checks(root)
+        self.assertIn("git-history-unreadable", checks)
+
+    def test_deleted_alias_of_reviewed_blob_is_still_rejected(self) -> None:
+        """Do not let rev-list's one preferred filename hide an older image alias."""
+        root = self.create_clean_release()
+        target = self.write_reviewed_image(root)
+        other = root / "docs/images/old-name.png"
+        target.rename(other)
+        self.git(root, "add", "docs/images")
+        self.git(root, "commit", "-q", "-m", "test: add old image path")
+        other.rename(target)
+        self.git(root, "add", "docs/images")
+        self.git(root, "commit", "-q", "-m", "test: rename image to reviewed path")
+        report = release_check(root)
+        self.assertFalse(report["ok"])
+        self.assertTrue(
+            any(
+                item["check"] == "git-history-unreadable"
+                and item["path"] == "docs/images/old-name.png"
+                for item in report["findings"]
+            )
+        )
+
+    def test_unknown_binary_is_rejected_in_worktree_and_history(self) -> None:
+        """Reject other PNGs and NUL-bearing data even when UTF-8 decoding succeeds."""
+        root = self.create_clean_release()
+        for name, content in (
+            ("other.png", b"\x89PNG\r\n\x1a\nunknown"),
+            ("data.bin", b"\x00test"),
+        ):
+            (root / name).write_bytes(content)
+        self.git(root, "add", "other.png", "data.bin")
+        self.git(root, "commit", "-q", "-m", "test: add unknown binaries")
+        report = release_check(root)
+        for name in ("other.png", "data.bin"):
+            with self.subTest(name=name):
+                checks = {item["check"] for item in report["findings"] if item["path"] == name}
+                self.assertTrue({"unreadable-file", "git-history-unreadable"}.issubset(checks))
+
+    def test_reviewed_image_does_not_bypass_symlink_or_size_limits(self) -> None:
+        """Keep path type and size checks ahead of the reviewed-image exception."""
+        root = self.create_clean_release()
+        target = self.write_reviewed_image(root)
+        original = target.read_bytes()
+        target.unlink()
+        target.symlink_to(root / "README.md")
+        self.git(root, "add", REVIEWED_IMAGE_PATH)
+        self.git(root, "commit", "-q", "-m", "test: add image symlink")
+        self.assertTrue({"symlink", "git-history-symlink"}.issubset(self.checks(root)))
+        target.unlink()
+        target.write_bytes(original + b"x" * 1_000_001)
+        self.git(root, "add", REVIEWED_IMAGE_PATH)
+        self.git(root, "commit", "-q", "-m", "test: add oversized image")
+        self.assertTrue({"oversized-file", "git-history-oversized"}.issubset(self.checks(root)))
+
+    def test_reviewed_image_must_not_be_executable_or_use_a_denied_path(self) -> None:
+        """The content exception does not waive path policy or Git file modes."""
+        root = self.create_clean_release()
+        target = self.write_reviewed_image(root)
+        report = release_check(root, denied_terms=("obsidian-graph",))
+        self.assertFalse(report["ok"])
+        self.assertIn("personal-path", {item["check"] for item in report["findings"]})
+        target.chmod(0o755)
+        self.git(root, "add", REVIEWED_IMAGE_PATH)
+        self.git(root, "commit", "-q", "-m", "test: add executable image")
+        errors = {
+            item["check"] for item in release_check(root)["findings"] if item["level"] == "error"
+        }
+        self.assertTrue({"reviewed-image", "git-history-reviewed-image"}.issubset(errors))
+
+    def test_unnamed_reviewed_blob_has_no_path_exception(self) -> None:
+        """Reject image bytes reached by a direct blob tag rather than a reviewed path."""
+        root = self.create_clean_release()
+        target = self.write_reviewed_image(root)
+        object_id = self.git(root, "hash-object", "-w", str(target)).stdout.strip()
+        self.git(root, "tag", "image-object", object_id)
+        target.unlink()
+        self.assertIn("git-history-unreadable", self.checks(root))
+        self.write_reviewed_image(root)
+        self.git(root, "add", REVIEWED_IMAGE_PATH)
+        self.git(root, "commit", "-q", "-m", "test: also name the tagged image")
+        self.assertIn("git-history-unreadable", self.checks(root))
+
+    def test_image_alias_in_tag_only_tree_is_rejected(self) -> None:
+        """Inspect aliases in a tree tag even when no commit contains that tree."""
+        root = self.create_clean_release()
+        target = self.write_reviewed_image(root)
+        self.git(root, "add", REVIEWED_IMAGE_PATH)
+        self.git(root, "commit", "-q", "-m", "test: add reviewed image")
+        other = root / "docs/images/tag-alias.png"
+        other.write_bytes(target.read_bytes())
+        self.git(root, "add", "docs/images/tag-alias.png")
+        tree_id = self.git(root, "write-tree").stdout.strip()
+        self.git(root, "tag", "image-tree", tree_id)
+        self.git(root, "reset", "-q", "HEAD", "--", "docs/images/tag-alias.png")
+        other.unlink()
+        report = release_check(root)
+        self.assertFalse(report["ok"])
+        self.assertTrue(
+            any(
+                item["check"] == "git-history-unreadable"
+                and item["path"] == "docs/images/tag-alias.png"
+                for item in report["findings"]
+            )
+        )
 
     def test_clean_fictional_distribution_passes(self) -> None:
         """Verify clean fictional distribution passes."""

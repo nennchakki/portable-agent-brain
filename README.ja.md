@@ -12,23 +12,29 @@
 macOSかLinuxと、Python 3.11以上が必要です。
 
 ```sh
-git clone https://github.com/nennchakki/portable-agent-brain.git
+git clone --branch feat/initial-public-release https://github.com/nennchakki/portable-agent-brain.git
 cd portable-agent-brain
 ./brain setup
 ```
 
 あとは保存先や使うAIを選んでください。Claude CodeとCodexはここで接続できます。ほかのAIを使う場合は[接続手順](docs/agent-integration.md)をどうぞ。
 
-最初は空の状態です。作業後の短い要約から知識候補を残し、次のタスクでは関係するメモだけをAIに読んでもらいます。
+AIに設定と過去の履歴からのメモ作りまで任せるなら、[このプロンプト](prompts/setup-and-import.ja.md)を渡してください。Obsidianでメモ同士の関連をたどるところまで頼めます。
+
+最初は空の状態です。作業でわかったことを短いメモとして残し、次の作業では関係するメモだけをAIに読んでもらいます。
+
+![Obsidianのグラフ表示でつながるメモ](docs/images/obsidian-graph.png)
+
+Obsidianで既存のメモを表示した例です。導入直後は空の状態から始まります。
 
 ## 少しだけ補足
 
 - 知識は手元の別フォルダに保存します。この公開リポジトリには、私の知識や会話履歴は入っていません。
-- Git remoteは任意です。バックアップするならprivateリポジトリを使ってください。
-- 新しい知識は確認待ちの候補として保存します。勝手に恒久ルールへ昇格させません。
-- **過去の会話履歴を自動で取り込む機能はまだありません。** `--history-source`も手順を表示するだけで、履歴の中身は読みません。
+- Gitでの同期は必須ではありません。バックアップ先を作るなら、非公開のリポジトリにしてください。
+- 保存したメモは、人が確認するまで参考情報として扱います。AIが勝手に作業の決まりにすることはありません。
+- CLIに履歴の自動取り込み機能はありません。`--history-source`は手順の表示だけです。上のプロンプトでは、許可した履歴をAIが読んで要約します。
 
-詳しく知りたくなったら、[導入手順](docs/getting-started.md)・[知識の保存](docs/automatic-capture.md)・[プライバシー](docs/privacy.md)をどうぞ。詳細ドキュメントは英語です。
+操作を一つずつ確認したい方は、[初心者向けの詳しい使い方](docs/guide.ja.md)へ。[英語版](docs/guide.md)もあります。技術的な説明は[導入手順](docs/getting-started.md)・[知識の保存](docs/automatic-capture.md)・[プライバシー](docs/privacy.md)をどうぞ。
 
 不具合や質問は[Issues](https://github.com/nennchakki/portable-agent-brain/issues)へ。秘密情報や実際の会話ログは貼らないでください。
 

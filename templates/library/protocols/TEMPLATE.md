@@ -17,8 +17,9 @@ prevents: []
 
 # Protocol title
 
-Protocols are reviewed cross-task instructions. A repeated candidate may
-propose protocol review but must not create or activate this note automatically.
+These instructions apply to more than one task and need human review.
+Repeated observations may suggest a review, but must not create this note or
+make its instructions take effect automatically.
 
 ## Applies when
 

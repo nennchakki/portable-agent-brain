@@ -1,8 +1,8 @@
 # Schemas
 
-Portable Agent Brain stores canonical knowledge as Markdown with YAML
-frontmatter. The files in this directory describe the data after frontmatter or
-JSON has been parsed:
+Portable Agent Brain stores notes in Markdown with a YAML header, called
+frontmatter. The files in this directory describe the data after YAML or JSON
+has been parsed:
 
 - [`knowledge-node.schema.json`](knowledge-node.schema.json) validates v1 node
   metadata and relation shapes.
@@ -19,14 +19,14 @@ JSON Schema cannot verify the repository around one document. The repository
 validator is also responsible for:
 
 - unique stable IDs and project slugs;
-- canonical project-node placement;
+- the required location of each project's main note;
 - existing, unambiguous wikilink targets;
 - relation target types;
 - vault-relative paths without traversal;
-- reciprocal and acyclic supersession;
+- replacement links that point back correctly and do not form a cycle;
 - project-policy paths and task types;
-- candidate-directory boundaries;
+- keeping notes awaiting review in their designated folder;
 - secret and public-release safety.
 
 Templates named `TEMPLATE.md` and content under `examples/` are documentation,
-not canonical user knowledge.
+not the user's own saved notes.

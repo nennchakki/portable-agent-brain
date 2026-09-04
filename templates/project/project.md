@@ -20,8 +20,8 @@ depends_on: []
 
 # Project name
 
-Replace this file's name with `<slug>.md`, and keep it as the project's one
-canonical entry point.
+Replace this file's name with `<slug>.md`, and keep it as the project's single
+main reference file.
 
 ## Purpose
 

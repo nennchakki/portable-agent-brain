@@ -46,6 +46,94 @@ class CliTests(BrainTestCase):
         self.assertTrue(target.is_dir())
         self.assertEqual(load_catalog(target).documents, {})
 
+    def test_bootstrap_saves_linked_notes_without_approving_them(self) -> None:
+        """Exercise the setup prompt's flow using only synthetic, isolated data."""
+        self.assert_json_success(self.run_brain("init", "--library", str(self.library), "--json"))
+        for source, destination in (
+            ("project.md", f"{PROJECT}.md"),
+            ("project.yaml", "project.yaml"),
+        ):
+            template = (REPOSITORY / "templates/project" / source).read_text(encoding="utf-8")
+            content = (
+                template.replace("replace-me", PROJECT)
+                .replace("YYYY-MM-DD", "2026-01-01")
+                .replace("human-reviewed", "synthetic-test")
+            )
+            self.write(f"projects/{PROJECT}/{destination}", content)
+
+        command = (
+            "learn-extract",
+            "--library",
+            str(self.library),
+            "--project",
+            PROJECT,
+            "--task-type",
+            "testing",
+            "--stdin",
+            "--json",
+        )
+        summary = self.summary(
+            reusable=[
+                {
+                    "type": "fact",
+                    "title": "BarometerFrame checksum verification",
+                    "statement": (
+                        "Verify the BarometerFrame checksum before displaying measurements."
+                    ),
+                    "evidence": "Synthetic history summary; verified in a fictional checksum test.",
+                }
+            ]
+        )
+        self.assert_json_success(self.run_brain(*command, "--dry-run", input_text=summary))
+        self.assertEqual(list((self.library / "inbox/candidates").glob("*.md")), [])
+        first = self.assert_json_success(self.run_brain(*command, input_text=summary))
+        first_path = first["candidates_created"][0]["path"]
+        original = (self.library / first_path).read_bytes()
+
+        followup = self.summary(
+            reusable=[
+                {
+                    "type": "preference",
+                    "title": "BarometerFrame output layout",
+                    "statement": (
+                        "Keep the BarometerFrame checksum result beside the displayed measurement."
+                    ),
+                    "evidence": "Synthetic user preference from a separate fictional review.",
+                    "related": [first_path],
+                }
+            ]
+        )
+        second = self.assert_json_success(self.run_brain(*command, input_text=followup))
+        second_path = second["candidates_created"][0]["path"]
+        saved = (self.library / second_path).read_text(encoding="utf-8")
+        self.assertIn(f"[[{first_path.removesuffix('.md')}]]", saved)
+        self.assertIn(f"[[projects/{PROJECT}/{PROJECT}]]", saved)
+        self.assertEqual((self.library / first_path).read_bytes(), original)
+        catalog = load_catalog(self.library)
+        for path in (first_path, second_path):
+            self.assertEqual(catalog.documents[path].status, "pending")
+            self.assertEqual(catalog.documents[path].authority, "candidate")
+
+        results = self.assert_json_success(
+            self.run_brain(
+                "search",
+                "--library",
+                str(self.library),
+                "--project",
+                PROJECT,
+                "BarometerFrame",
+                "--json",
+            )
+        )
+        self.assertTrue(
+            {first_path, second_path}.issubset({item["path"] for item in results["results"]})
+        )
+        validation = self.assert_json_success(
+            self.run_brain("validate", "--library", str(self.library), "--json")
+        )
+        self.assertEqual(validation["graph"]["knowledge_nodes"], 1)
+        self.assertEqual(validation["graph"]["canonical_projects"], 1)
+
     def test_setup_supports_an_absolute_sandbox_mount_without_agents(self) -> None:
         """Verify setup supports an absolute sandbox mount without agents."""
         target = self.sandbox / "brain"

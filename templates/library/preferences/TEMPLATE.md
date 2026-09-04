@@ -17,7 +17,7 @@ related: []
 # Preference title
 
 State who or what the preference applies to. Do not turn a one-time request
-into a permanent preference without evidence.
+into a preference to apply to future tasks without evidence.
 
 ## Statement
 

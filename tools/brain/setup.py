@@ -1344,7 +1344,7 @@ def history_mining_plan(enabled: bool) -> HistoryMiningPlan:
 
     notice = (
         "Raw conversations, session identifiers, tool logs, credentials, and runtime "
-        "telemetry must never be copied into the Knowledge Library."
+        "telemetry must never be copied into the notes folder."
     )
     if not enabled:
         return HistoryMiningPlan(False, (), notice)
@@ -1353,8 +1353,8 @@ def history_mining_plan(enabled: bool) -> HistoryMiningPlan:
         (
             "Inventory selected history sources read-only and exclude the active session.",
             "Review bounded task summaries; do not persist a raw-history index.",
-            "Verify reusable facts against current Project sources and active Decisions.",
-            "Submit only short structured candidates through brain learn-extract.",
+            "Verify reusable facts against current project sources and decisions still in use.",
+            "Submit only short structured summaries through brain learn-extract for human review.",
         ),
         notice,
     )

@@ -15,8 +15,8 @@ related: []
 
 # Principle title
 
-Principles require deliberate human review. Never generate or promote one
-automatically from candidate counts.
+These guiding instructions require human review. Never create or adopt one
+automatically just because similar notes were saved repeatedly.
 
 ## Principle
 

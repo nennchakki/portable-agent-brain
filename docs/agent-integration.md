@@ -1,14 +1,14 @@
 # Agent integration
 
-All integrations use one canonical, vendor-neutral adapter:
+All integrations use the same short instruction file, called an adapter:
 
 ```text
 portable-agent-brain/adapters/external-brain.md
 ```
 
-The adapter describes when an agent should retrieve context and when it should
-capture a candidate. It does not contain user knowledge. Vendor-specific global
-instructions should contain only a thin entry point to this file.
+This file tells the agent when to find relevant notes and when to save a new
+note for review. It contains no user notes. Each agent's global instructions
+should contain only a short reference to this file.
 
 ## Install through setup
 
@@ -95,28 +95,33 @@ and verify the result.
 The prompt is intentionally vendor-neutral. It does not grant broader file or
 network permissions and does not ask the agent to copy the library.
 
-## Stop-time capture
+For setup plus initial notes from selected history, use the
+[setup prompt](../prompts/setup-and-import.md).
 
-An integration may use a supported stop hook to detect a missing capture
-decision. The hook should only check for a small completion receipt and ask the
+## Saving notes when a task ends
+
+An integration may use a supported stop hook to check whether the agent has
+decided if anything is worth saving.
+The hook should only look for the task-end result marker and ask the
 same agent to perform the decision once. It must not:
 
 - save or parse the raw transcript;
 - call a second model or remote service;
 - write knowledge directly;
 - repeat when the hook is already active;
-- promote, merge, supersede, or commit a candidate.
+- approve a new note, combine it with other notes, replace an existing note,
+  or make a Git commit.
 
 The agent that has the task context creates a short structured summary and
-calls `brain learn-extract` only when it found reusable knowledge. Valid receipt
-states are `saved`, `duplicate`, `reinforced`, `none`, and `error`.
+calls `brain learn-extract` only when it found reusable knowledge. Valid result
+marker values are `saved`, `duplicate`, `reinforced`, `none`, and `error`.
 
-Stop integration is optional for agents that do not expose a safe hook. Manual
-task-end capture remains supported.
+Stop integration is optional for agents that do not expose a safe hook. The agent
+or user can still submit a task summary without a hook.
 
-## Library discovery
+## Finding the notes folder
 
-Agent adapters use the same resolution contract as the CLI:
+Agent instruction files use the same path selection order as the CLI:
 
 1. An explicit `--library` option for the command being run.
 2. `BRAIN_LIBRARY` inside the agent's environment.
@@ -127,7 +132,7 @@ the value from the agent's runtime and use the sandbox-visible mount path.
 
 ## Rollback
 
-Rollback should remove only artifacts that Portable Agent Brain installed:
+To undo setup, remove only files and settings that Portable Agent Brain installed:
 
 1. Remove the managed block between its exact markers.
 2. Remove only the adapter import added by setup.

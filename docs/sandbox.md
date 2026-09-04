@@ -3,7 +3,7 @@
 Portable Agent Brain must work when an agent has a different home directory,
 runs in a container, or can read only part of the host filesystem.
 
-## Use a runtime-visible path
+## Use a path the agent can access
 
 Configure the library from inside the agent environment:
 
@@ -50,8 +50,8 @@ docker run --rm \
 The host variable is expanded by the host shell. The value given to the agent
 is `/brain`, which exists inside the container.
 
-With a read-only mount, `search` and `context` can work while initialization,
-capture, review, and schema migrations must fail safely without partial writes.
+With a read-only mount, `search` and `context` can work. Operations that create
+or change notes must fail safely without leaving partial writes.
 
 ## Avoid inaccessible symlinks
 
@@ -60,16 +60,16 @@ Prefer mounting the real library directory. If symlinks are required, mount
 both the link and its target and verify the resolved path inside the agent
 environment.
 
-Candidate input and candidate directories should not be symlinks. Safe capture
-must refuse ambiguous or redirected write targets.
+Input files and folders for new notes should not be symlinks. Saving must fail
+if the destination is ambiguous or redirected.
 
-## Read-only canonical knowledge with a writable inbox
+## Protect existing notes and allow new drafts
 
-A useful least-privilege deployment keeps reviewed knowledge read-only while
-allowing only the candidate queue to be written:
+You can keep reviewed notes read-only while allowing writes only to the folder
+for notes awaiting review:
 
 ```text
-/brain/                         read-only canonical mount
+/brain/                         read-only reviewed notes
 ├── projects/
 ├── lessons/
 ├── decisions/
@@ -97,16 +97,16 @@ Agent Brain configuration variable.
 This layout is a supported design target. A release that does not yet expose a
 separate candidate-directory setting still requires `inbox/candidates/` to be
 writable beneath the configured library root. Verify the exact mount behavior
-before enabling automatic capture. Retrieval-only operation remains valid.
+before allowing automatic note saving. Read-only search remains supported.
 
 ## Permissions
 
 - Give the agent read access only to knowledge needed for its work.
-- Keep the candidate directory private to the user account or container user.
+- Keep the folder for unreviewed notes private to the user account or container user.
 - Do not mount credential stores or unrelated home directories for convenience.
 - Keep lock and temporary files on the same protected writable filesystem as
-  the candidate queue.
-- Reject world-writable or redirected candidate paths when safety cannot be
+  the folder for unreviewed notes.
+- Reject world-writable or redirected paths for new notes when safety cannot be
   established.
 
 ## Installing adapters in a sandbox
@@ -127,5 +127,5 @@ From inside the final agent environment, verify:
 2. `brain search` and `brain context` cannot escape the library root.
 3. Broken or out-of-root wikilinks are rejected.
 4. Read-only operations do not create cache or telemetry files in the library.
-5. Capture either writes only to the candidate mount or fails safely.
+5. Saving either writes only to the writable review folder or fails safely.
 6. The adapter does not instruct the agent to preload the vault.

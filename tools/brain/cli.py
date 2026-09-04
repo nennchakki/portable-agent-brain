@@ -35,14 +35,16 @@ def _default_adapter() -> Path:
     try:
         distribution = importlib.metadata.distribution("portable-agent-brain")
     except importlib.metadata.PackageNotFoundError as error:
-        raise SetupError("Canonical adapter is missing from this installation") from error
+        raise SetupError(
+            "Shared agent instruction file is missing from this installation"
+        ) from error
     for item in distribution.files or ():
         normalized = str(item).replace("\\", "/")
         if normalized.endswith("share/portable-agent-brain/adapters/external-brain.md"):
             candidate = Path(distribution.locate_file(item))
             if candidate.is_file():
                 return candidate
-    raise SetupError("Canonical adapter is missing from this installation")
+    raise SetupError("Shared agent instruction file is missing from this installation")
 
 
 def _library_argument(command: argparse.ArgumentParser) -> None:
@@ -51,7 +53,7 @@ def _library_argument(command: argparse.ArgumentParser) -> None:
         "--library",
         "--root",
         dest="library",
-        help="absolute Knowledge Library path; overrides BRAIN_LIBRARY",
+        help="absolute notes folder path; overrides BRAIN_LIBRARY",
     )
 
 
@@ -59,21 +61,23 @@ def parser() -> argparse.ArgumentParser:
     """Build the stable public CLI parser."""
     result = argparse.ArgumentParser(
         prog="brain",
-        description="Retrieve bounded Knowledge and save reviewable candidates.",
+        description="Find relevant notes and save new notes for human review.",
     )
     result.add_argument("--version", action="version", version="%(prog)s 0.1.0")
     commands = result.add_subparsers(dest="command", required=True)
 
-    initialize = commands.add_parser("init", help="create an empty Knowledge Library")
+    initialize = commands.add_parser("init", help="create an empty notes folder")
     _library_argument(initialize)
     initialize.add_argument("--json", action="store_true")
 
-    setup = commands.add_parser("setup", help="configure a Library and optional integrations")
+    setup = commands.add_parser(
+        "setup", help="set up a notes folder and optional agent connections"
+    )
     _library_argument(setup)
     setup.add_argument(
         "--agent", action="append", choices=("claude", "codex", "generic"), default=[]
     )
-    setup.add_argument("--adapter", help="canonical external-brain.md path")
+    setup.add_argument("--adapter", help="path to the shared external-brain.md instruction file")
     setup.add_argument("--agent-home", help="isolated HOME for Agent instruction targets")
     setup.add_argument("--claude-file", help="explicit Claude Code global instruction file")
     setup.add_argument("--codex-file", help="explicit Codex global instruction file")
@@ -95,7 +99,8 @@ def parser() -> argparse.ArgumentParser:
     setup.add_argument("--remote-url", help="explicit remote URL for --git-mode remote")
     setup.add_argument("--remote-name", default="origin")
     setup.add_argument(
-        "--history-source", help="explicit source to include in the local-only history-mining plan"
+        "--history-source",
+        help="path for history-review guidance only; history content is not read",
     )
     setup.add_argument("--no-save-default", action="store_true")
     setup.add_argument("--non-interactive", action="store_true")
@@ -130,7 +135,7 @@ def parser() -> argparse.ArgumentParser:
             if name == "learn-extract":
                 command.add_argument("--task-type", required=True, choices=TASK_TYPES)
 
-    validate = commands.add_parser("validate", help="validate a Knowledge Library")
+    validate = commands.add_parser("validate", help="check note formats and links")
     _library_argument(validate)
     validate.add_argument("--json", action="store_true")
 
@@ -143,7 +148,9 @@ def parser() -> argparse.ArgumentParser:
     )
     release.add_argument("--json", action="store_true")
 
-    hook = commands.add_parser("capture-hook", help="bounded task-end capture receipt gate")
+    hook = commands.add_parser(
+        "capture-hook", help="check the note-saving result marker at task end"
+    )
     hook.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
     return result
 
@@ -195,7 +202,7 @@ def _require_external_library(library: Path) -> None:
     engine = ENGINE_ROOT.resolve()
     destination = library.resolve(strict=False)
     if destination == engine or destination.is_relative_to(engine):
-        raise BrainError("writable Knowledge Library must be outside the public engine checkout")
+        raise BrainError("notes folder must be outside the public engine checkout")
 
 
 def _prompt(label: str, default: str = "") -> str:
@@ -210,7 +217,7 @@ def _guide(arguments: argparse.Namespace) -> None:
     if arguments.non_interactive or arguments.json or not sys.stdin.isatty():
         return
     default_library = resolve_library_path(arguments.library).as_posix()
-    arguments.library = _prompt("Knowledge Library", default_library)
+    arguments.library = _prompt("Notes folder", default_library)
     if not arguments.agent:
         chosen = _prompt("Agents (comma separated: claude,codex; blank for none)")
         arguments.agent = [item.strip() for item in chosen.split(",") if item.strip()]

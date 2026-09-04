@@ -391,13 +391,16 @@ def candidate_markdown(
     text += (
         "---\n\n# "
         + data["title"]
-        + "\n\nPending candidate. Not approved canonical Knowledge; relations below "
-        "are proposals only.\n"
+        + "\n\nAwaiting human review. Treat this note as reference, not an approved "
+        "instruction. Links below are suggested connections.\n"
     )
     for key, heading in SECTIONS.items():
         if data.get(key):
             text += f"\n## {heading}\n\n{data[key].strip()}\n"
-    text += "\n## Review checks\n\nNo automatic merge, supersession, Rule promotion or commit.\n"
+    text += (
+        "\n## Review checks\n\nDo not automatically approve this note, combine or replace notes, "
+        "turn it into a working instruction, or commit it to Git.\n"
+    )
     for hit in review["possible_duplicates"]:
         text += f"\n- Possible duplicate: [[{hit['path'].removesuffix('.md')}]]\n"
     for conflict in review["possible_conflicts"]:
@@ -466,7 +469,9 @@ def save_inbox(root: Path, filename: str, content: str) -> str:
             os.close(file_descriptor)
         if created:
             os.unlink(filename, dir_fd=directory)
-        raise BrainError("safe inbox write failed; canonical Knowledge was not changed") from error
+        raise BrainError(
+            "saving to the review folder failed; existing notes were not changed"
+        ) from error
     finally:
         for descriptor in reversed(descriptors):
             os.close(descriptor)

@@ -4,8 +4,8 @@ This directory is a complete but fictional knowledge-library fixture. It does
 not describe a real project, person, organization, system, or incident.
 
 `sample-weather-cli` formats synthetic weather records for a command-line demo.
-The example contains one project node, one concept, and one lesson so that
-search, task-aware context, graph links, and duplicate capture can be tested
+The example has a project note, a topic note, and a lesson. It lets you test
+search, note selection for a task, links between notes, and duplicate checks
 without personal data.
 
 From the engine repository root:
@@ -19,7 +19,7 @@ From the engine repository root:
   "debug stale cached output"
 ```
 
-To exercise capture safely, copy this fixture to a temporary directory first.
+To try saving notes safely, copy this example to a temporary directory first.
 The checked-in fixture should remain unchanged:
 
 ```sh
@@ -32,10 +32,10 @@ cp -R examples/demo-project "$demo_library"
   --stdin < examples/demo-project/task-summary.json
 ```
 
-Because the reusable lesson already exists, a conforming implementation should
-suppress a duplicate or reinforce it only when the summary represents an
-independent observation. Replaying the exact same summary must not increase the
-evidence count.
+Because the lesson already exists, the tool should avoid making a duplicate.
+It may add supporting evidence to an existing unreviewed note only when the
+summary describes an independent observation. Submitting the exact same
+summary again must not increase the evidence count.
 
 Do not install this fixture into a new personal library automatically. New
-libraries must start with zero knowledge and zero candidates.
+libraries must start with zero saved notes, including notes awaiting review.

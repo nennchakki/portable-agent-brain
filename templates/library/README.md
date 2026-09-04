@@ -1,6 +1,6 @@
 # Your knowledge library
 
-This directory is a private, user-owned source of truth for multiple agents.
+This private folder holds the original notes that multiple agents can share.
 The public engine and this library should remain separate repositories.
 
 A new library is intentionally empty:
@@ -14,10 +14,11 @@ Procedures: 0
 Candidates: 0
 ```
 
-Files named `TEMPLATE.md` and `.gitkeep` are not knowledge nodes. Copy and
+Files named `TEMPLATE.md` and `.gitkeep` are not saved notes. Copy and
 rename a template only after replacing its placeholder ID, date, scope, and
 evidence. Do not save raw conversations, tool logs, session identifiers, or
 credentials here.
 
-Markdown and YAML frontmatter are canonical. Obsidian is an optional human
-interface; HTML, search indexes, and graph views are derived data.
+The Markdown files and their YAML headers are the original records. You can
+read and edit them in Obsidian if you want. HTML, search indexes, and diagrams
+are generated from these files.

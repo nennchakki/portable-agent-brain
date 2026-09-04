@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -13,7 +14,11 @@ from pathlib import Path
 from tools.validate import run_checks, secret_path_kind
 
 MAX_RELEASE_TEXT_BYTES = 1_000_000
+REVIEWED_IMAGE_PATH = "docs/images/obsidian-graph.png"
+REVIEWED_IMAGE_BYTES = 331_532
+REVIEWED_IMAGE_SHA256 = "87e8df83f3c2e905addc134eaa4311f540178e46dd513d94507ca64cfb8504d8"
 PUBLIC_BASELINE_COMMIT = "51c6ed3608c1eeb791066b97cba8bbc63c38a878"
+HistoryBlobPaths = dict[str, set[tuple[str, str]]]
 LIVE_LIBRARY_FOLDERS = frozenset(
     {
         "projects",
@@ -110,12 +115,60 @@ def _run_git_bytes(root: Path, *arguments: str) -> subprocess.CompletedProcess[b
     )
 
 
-def _text(path: Path) -> str | None:
-    """Read small UTF-8 text files and ignore opaque artifacts."""
+def _release_bytes(path: Path) -> bytes | None:
+    """Read a bounded regular release file without following a final symlink."""
+    descriptor = -1
     try:
-        return path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError):
+        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > MAX_RELEASE_TEXT_BYTES:
+            return None
+        with os.fdopen(descriptor, "rb") as source:
+            descriptor = -1
+            content = source.read(MAX_RELEASE_TEXT_BYTES + 1)
+        return content if len(content) <= MAX_RELEASE_TEXT_BYTES else None
+    except OSError:
         return None
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+
+
+def _reviewed_image_finding(
+    path: str, content: bytes, *, history: bool = False, mode: str = "100644"
+) -> ReleaseFinding | None:
+    """Allow only the exact image reviewed visually and for embedded metadata.
+
+    Args:
+        path: Exact release-relative path; aliases receive no exception.
+        content: Bounded bytes from a regular file or reachable Git blob.
+        history: Whether to label the finding as a Git-history exception.
+        mode: Git tree mode; only ordinary non-executable image files qualify.
+
+    Returns:
+        An explicit review warning, a mismatch error, or None for other paths.
+    """
+    if path != REVIEWED_IMAGE_PATH:
+        return None
+    check = "git-history-reviewed-image" if history else "reviewed-image"
+    if (
+        mode != "100644"
+        or len(content) != REVIEWED_IMAGE_BYTES
+        or hashlib.sha256(content).hexdigest() != REVIEWED_IMAGE_SHA256
+    ):
+        return ReleaseFinding(
+            "error",
+            check,
+            path,
+            "image does not match the reviewed path, size, SHA-256, or file mode",
+        )
+    return ReleaseFinding(
+        "warning",
+        check,
+        path,
+        "exact reviewed image allowed; binary contents rely on prior visual and metadata "
+        "review, not automated text privacy scanning",
+    )
 
 
 def _release_files(root: Path) -> list[Path]:
@@ -234,7 +287,8 @@ def _scan_tree(root: Path, denied_terms: tuple[str, ...]) -> list[ReleaseFinding
                 )
             )
         try:
-            size = path.stat().st_size
+            metadata = path.stat()
+            size = metadata.st_size
         except OSError:
             size = MAX_RELEASE_TEXT_BYTES + 1
         if size > MAX_RELEASE_TEXT_BYTES:
@@ -247,7 +301,18 @@ def _scan_tree(root: Path, denied_terms: tuple[str, ...]) -> list[ReleaseFinding
                 )
             )
             continue
-        content = _text(path)
+        raw = _release_bytes(path)
+        mode = "100755" if metadata.st_mode & stat.S_IXUSR else "100644"
+        image_finding = (
+            _reviewed_image_finding(relative, raw, mode=mode) if raw is not None else None
+        )
+        if image_finding is not None:
+            findings.append(image_finding)
+            continue
+        try:
+            content = raw.decode("utf-8") if raw is not None and b"\x00" not in raw else None
+        except UnicodeError:
+            content = None
         if content is None:
             findings.append(
                 ReleaseFinding(
@@ -500,7 +565,9 @@ def _history_path_findings(
     return findings
 
 
-def _history_blob_findings(root: Path, denied_terms: tuple[str, ...]) -> list[ReleaseFinding]:
+def _history_blob_findings(
+    root: Path, denied_terms: tuple[str, ...], blob_paths: HistoryBlobPaths
+) -> list[ReleaseFinding]:
     """Scan each reachable named blob, including files deleted from later commits."""
     findings: list[ReleaseFinding] = []
     objects = _run_git(root, "rev-list", "--objects", "--all")
@@ -526,15 +593,26 @@ def _history_blob_findings(root: Path, denied_terms: tuple[str, ...]) -> list[Re
     )
     terms = tuple(term.casefold() for term in denied_terms)
     owner = _owner().casefold()
-    seen: set[str] = set()
+    references: set[tuple[str, str, str]] = set()
     for line in objects.stdout.splitlines():
-        object_id, separator, path = line.partition(" ")
-        if not separator or object_id in seen:
+        object_id, _separator, path = line.partition(" ")
+        if path:
+            continue
+        kind = _run_git(root, "cat-file", "-t", object_id)
+        if not kind.returncode and kind.stdout.strip() == "tree":
+            findings.extend(_history_tree_findings(root, object_id, denied_terms, blob_paths))
+    for line in objects.stdout.splitlines():
+        object_id, _separator, path = line.partition(" ")
+        if object_id in blob_paths:
+            references.update((object_id, name, mode) for name, mode in blob_paths[object_id])
+        if object_id not in blob_paths or not path:
+            references.add((object_id, path or "<unnamed-blob>", ""))
+    for object_id, path, mode in sorted(references):
+        if not object_id:
             continue
         kind = _run_git(root, "cat-file", "-t", object_id)
         if kind.returncode or kind.stdout.strip() != "blob":
             continue
-        seen.add(object_id)
         private_path = any(term in path.casefold() for term in terms)
         display_path = "<redacted-path>" if private_path else path
         size_result = _run_git(root, "cat-file", "-s", object_id)
@@ -563,11 +641,15 @@ def _history_blob_findings(root: Path, denied_terms: tuple[str, ...]) -> list[Re
                 )
             )
             continue
+        image_finding = _reviewed_image_finding(path, blob.stdout, history=True, mode=mode)
+        if image_finding is not None:
+            findings.append(image_finding)
+            continue
         try:
             content = blob.stdout.decode("utf-8")
         except UnicodeError:
             content = ""
-        if not content and blob.stdout:
+        if (not content and blob.stdout) or b"\x00" in blob.stdout:
             findings.append(
                 ReleaseFinding(
                     "error",
@@ -669,7 +751,43 @@ def _free_metadata_is_sensitive(text: str, denied_terms: tuple[str, ...]) -> boo
     return any(re.search(pattern, text) for pattern in patterns)
 
 
-def _scan_history(root: Path, denied_terms: tuple[str, ...]) -> list[ReleaseFinding]:
+def _history_tree_findings(
+    root: Path, revision: str, denied_terms: tuple[str, ...], blob_paths: HistoryBlobPaths
+) -> list[ReleaseFinding]:
+    """Check one reachable tree and retain every blob path, including tag-only trees."""
+    tree = _run_git_bytes(root, "ls-tree", "-rz", revision)
+    if tree.returncode:
+        return [
+            ReleaseFinding(
+                "error", "git-history", revision[:12], "unable to inspect a reachable tree"
+            )
+        ]
+    findings: list[ReleaseFinding] = []
+    for entry in tree.stdout.split(b"\x00"):
+        if not entry:
+            continue
+        metadata_fields, separator, raw_path = entry.partition(b"\t")
+        try:
+            mode, kind, object_id = metadata_fields.decode("ascii").split()
+            path = raw_path.decode("utf-8")
+            if not separator:
+                raise ValueError
+        except (UnicodeError, ValueError):
+            findings.append(
+                ReleaseFinding(
+                    "error", "git-history", revision[:12], "malformed reachable tree entry"
+                )
+            )
+            continue
+        findings.extend(_history_path_findings(path, mode, denied_terms))
+        if kind == "blob":
+            blob_paths.setdefault(object_id, set()).add((path, mode))
+    return findings
+
+
+def _scan_history(
+    root: Path, denied_terms: tuple[str, ...], blob_paths: HistoryBlobPaths
+) -> list[ReleaseFinding]:
     """Scan reachable blobs and disclose immutable baseline metadata exceptions."""
     findings: list[ReleaseFinding] = []
     revisions = _run_git(root, "rev-list", "--all")
@@ -713,25 +831,7 @@ def _scan_history(root: Path, denied_terms: tuple[str, ...]) -> list[ReleaseFind
                     "reachable commit message contains private or secret-like metadata",
                 )
             )
-        tree = _run_git(root, "ls-tree", "-r", revision)
-        if tree.returncode:
-            findings.append(
-                ReleaseFinding(
-                    "error", "git-history", revision[:12], "unable to inspect a reachable tree"
-                )
-            )
-            continue
-        for entry in tree.stdout.splitlines():
-            metadata_fields, separator, path = entry.partition("\t")
-            if not separator:
-                findings.append(
-                    ReleaseFinding(
-                        "error", "git-history", revision[:12], "malformed reachable tree entry"
-                    )
-                )
-                continue
-            mode = metadata_fields.split(maxsplit=1)[0]
-            findings.extend(_history_path_findings(path, mode, denied_terms))
+        findings.extend(_history_tree_findings(root, revision, denied_terms, blob_paths))
     tags = _run_git(root, "tag", "--list")
     for tag in tags.stdout.splitlines():
         annotation = _run_git(
@@ -771,12 +871,14 @@ def release_check(root: Path, *, denied_terms: tuple[str, ...] = ()) -> dict[str
             )
         )
     resolved = selected.resolve()
+    blob_paths: HistoryBlobPaths = {}
+    history_findings = _scan_history(resolved, denied_terms, blob_paths)
     findings = [
         *root_findings,
         *_scan_tree(resolved, denied_terms),
         *_scan_repository_shape(resolved, denied_terms),
-        *_scan_history(resolved, denied_terms),
-        *_history_blob_findings(resolved, denied_terms),
+        *history_findings,
+        *_history_blob_findings(resolved, denied_terms, blob_paths),
     ]
     for marker in denied_terms:
         if not marker:

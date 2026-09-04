@@ -3,6 +3,9 @@
 Use the following prompt once with an agent whose integration is not yet
 documented. Replace the placeholders before sending it.
 
+For setup and initial notes from past chats, use the
+[setup prompt](setup-and-import.md) instead.
+
 ---
 
 Inspect this agent's official, current mechanism for persistent user-level
@@ -11,10 +14,10 @@ knowledge into that mechanism.
 
 Inputs:
 
-- Engine checkout: `<PORTABLE_AGENT_BRAIN_PATH>`
-- Canonical adapter:
+- Software directory: `<PORTABLE_AGENT_BRAIN_PATH>`
+- Shared agent instruction file:
   `<PORTABLE_AGENT_BRAIN_PATH>/adapters/external-brain.md`
-- Knowledge library visible to this agent: `<BRAIN_LIBRARY_PATH>`
+- Notes folder visible to this agent: `<BRAIN_LIBRARY_PATH>`
 
 Requirements:
 
@@ -24,7 +27,7 @@ Requirements:
    project-local rules. Make a recoverable backup before changing a file.
 3. Prefer a supported external Markdown import. If imports are unavailable,
    add one clearly marked, minimal managed block that tells the agent when to
-   read the canonical adapter. Do not duplicate the adapter body or any
+   read the shared instruction file. Do not duplicate the adapter body or any
    knowledge note.
 4. Configure the library through `BRAIN_LIBRARY` or the CLI's `--library`
    option. Use the path visible inside this agent's runtime, container, or
@@ -33,11 +36,11 @@ Requirements:
    Retrieval must happen only for tasks where prior knowledge can affect the
    result.
 6. If this agent supports a safe task-end hook, propose a hook that checks only
-   for the Portable Agent Brain capture receipt and prompts the same agent once
-   when the receipt is missing. The hook must not read or store transcripts,
+   for the Portable Agent Brain task-end result marker and prompts the same
+   agent once when the marker is missing. The hook must not read or store transcripts,
    call another model, or write knowledge directly. Do not install a hook
    without showing the exact change.
-7. Make installation idempotent. A second run must not add another import,
+7. Running setup again must not add duplicate settings: no second import,
    managed block, or hook.
 8. Verify in a fresh session that a knowledge-dependent task can use bounded
    `brain context`, while an obvious typo task skips retrieval. Confirm that no
