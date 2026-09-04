@@ -1,5 +1,7 @@
 # Saving notes after a task
 
+English | [日本語](automatic-capture.ja.md)
+
 After a task, an agent can save useful findings as notes for human review.
 This process, called capture in some command output, does not save every message.
 
@@ -139,8 +141,8 @@ until a person checks the disagreement.
 Repeated independent findings can prompt a person to review whether a note
 should become a working instruction. They cannot approve that change. By default:
 
-- a lesson independently observed at least four times can prompt a review of
-  whether it should become an instruction for future tasks;
+- any note awaiting review that was independently observed at least four times
+  can prompt a review of whether it should become approved working knowledge;
 - a procedure independently confirmed at least three times can prompt a review
   of whether it should become a reusable agent skill.
 

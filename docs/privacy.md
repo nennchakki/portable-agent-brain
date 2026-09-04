@@ -1,5 +1,7 @@
 # Privacy and release safety
 
+English | [日本語](privacy.ja.md)
+
 Portable Agent Brain stores notes locally by default. A new notes folder is
 empty. The core tool needs no hosted service, and Git synchronization is optional.
 

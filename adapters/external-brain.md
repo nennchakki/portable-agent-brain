@@ -1,5 +1,7 @@
 # External Brain
 
+English | [日本語](external-brain.ja.md)
+
 - The original notes are in the user-owned folder selected by
   `BRAIN_LIBRARY` or `--library`. Do not copy knowledge into agent instructions
   and do not preload or recursively read the library.

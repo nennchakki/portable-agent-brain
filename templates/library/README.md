@@ -1,5 +1,7 @@
 # Your knowledge library
 
+English | [日本語](README.ja.md)
+
 This private folder holds the original notes that multiple agents can share.
 The public engine and this library should remain separate repositories.
 

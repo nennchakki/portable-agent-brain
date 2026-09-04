@@ -1,5 +1,7 @@
 # Getting started
 
+English | [日本語](getting-started.ja.md)
+
 This guide creates a local folder for your notes, called a library, and connects
 it to an AI agent. You do not need a hosted service.
 

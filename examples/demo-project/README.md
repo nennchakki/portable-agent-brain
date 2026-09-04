@@ -1,5 +1,7 @@
 # Fictional demo library
 
+English | [日本語](README.ja.md)
+
 This directory is a complete but fictional knowledge-library fixture. It does
 not describe a real project, person, organization, system, or incident.
 
@@ -11,9 +13,9 @@ without personal data.
 From the engine repository root:
 
 ```sh
-./brain search --library examples/demo-project "cache expiry"
+./brain search --library "$PWD/examples/demo-project" "cache expiry"
 
-./brain context --library examples/demo-project \
+./brain context --library "$PWD/examples/demo-project" \
   --project sample-weather-cli \
   --task-type debugging \
   "debug stale cached output"

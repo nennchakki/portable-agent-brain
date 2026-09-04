@@ -1,5 +1,7 @@
 # Agent integration
 
+English | [日本語](agent-integration.ja.md)
+
 All integrations use the same short instruction file, called an adapter:
 
 ```text
@@ -126,6 +128,7 @@ Agent instruction files use the same path selection order as the CLI:
 1. An explicit `--library` option for the command being run.
 2. `BRAIN_LIBRARY` inside the agent's environment.
 3. A setup-managed default.
+4. `~/agent-library` when none of the above is set.
 
 An environment variable set on the host may not exist inside a sandbox. Verify
 the value from the agent's runtime and use the sandbox-visible mount path.

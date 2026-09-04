@@ -1,5 +1,7 @@
 # Schemas
 
+English | [日本語](README.ja.md)
+
 Portable Agent Brain stores notes in Markdown with a YAML header, called
 frontmatter. The files in this directory describe the data after YAML or JSON
 has been parsed:
@@ -26,7 +28,12 @@ validator is also responsible for:
 - replacement links that point back correctly and do not form a cycle;
 - project-policy paths and task types;
 - keeping notes awaiting review in their designated folder;
-- secret and public-release safety.
+- secret-like content checks and the release-safety checks appropriate to the
+  command being run.
 
 Templates named `TEMPLATE.md` and content under `examples/` are documentation,
 not the user's own saved notes.
+
+`brain validate` checks library structure and common secret-like patterns. It
+does not certify that content is safe to publish. A public release also needs
+`brain release-check`, an optional external denylist, and human review.

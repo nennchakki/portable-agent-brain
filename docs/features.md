@@ -1,6 +1,6 @@
 # Features and commands in detail
 
-English | [日本語](features.ja.md) | [Beginner setup and usage guide](guide.md) | [README](../README.md)
+English | [日本語](features.ja.md) | [All documentation](README.md) | [Beginner guide](guide.md) | [README](../README.md)
 
 Portable Agent Brain saves useful notes from your work with AI and helps find
 the ones you need next time. You still use your usual AI for the conversation

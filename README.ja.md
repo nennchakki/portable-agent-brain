@@ -37,7 +37,7 @@ cd portable-agent-brain
 ./brain setup
 ```
 
-あとは保存先や使うAIを選んでください。Claude CodeとCodexはここで接続できます。ほかのAIを使う場合は[接続手順](docs/agent-integration.md)をどうぞ。
+あとは保存先や使うAIを選んでください。Claude CodeとCodexはここで接続できます。ほかのAIを使う場合は[接続手順](docs/agent-integration.ja.md)をどうぞ。
 
 最初は空の状態です。作業でわかったことを短いメモとして残し、次の作業では関係するメモだけをAIに読んでもらいます。
 
@@ -52,7 +52,7 @@ Obsidianで既存のメモを表示した例です。導入直後は空の状態
 - 保存したメモは、人が確認するまで参考情報として扱います。AIが勝手に作業の決まりにすることはありません。
 - CLIに履歴の自動取り込み機能はありません。`--history-source`は手順の表示だけです。上のプロンプトでは、許可した履歴をAIが読んで要約します。
 
-詳しい説明は、[初めての設定と使い方](docs/guide.ja.md)と[機能・コマンドの解説](docs/features.ja.md)に分けています。[Hermes-Agentとの違い](docs/features.ja.md#hermes-agentとの違い)も後者にあります。どちらも英語版へのリンク付きです。
+詳しい説明は、[初めての設定と使い方](docs/guide.ja.md)と[機能・コマンドの解説](docs/features.ja.md)に分けています。[Hermes-Agentとの違い](docs/features.ja.md#hermes-agentとの違い)も後者にあります。目的別に探す場合は[日英の説明書一覧](docs/README.ja.md)をどうぞ。
 
 不具合や質問は[Issues](https://github.com/nennchakki/portable-agent-brain/issues)へ。秘密情報や実際の会話ログは貼らないでください。
 

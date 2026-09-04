@@ -1,5 +1,7 @@
 # Connect this agent to Portable Agent Brain
 
+English | [日本語](connect-agent.ja.md)
+
 Use the following prompt once with an agent whose integration is not yet
 documented. Replace the placeholders before sending it.
 

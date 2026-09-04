@@ -1,5 +1,7 @@
 # Note formats and search priority
 
+English | [日本語](knowledge-model.ja.md)
+
 Portable Agent Brain separates the reusable engine from each user's data:
 
 ```text
@@ -122,8 +124,9 @@ search_include:
   Do not use it as an exclusion or privacy boundary.
 - `domains` provides keyword hints; it does not indicate whether a note has been verified.
 
-Unknown task types, missing paths, duplicate targets, or mismatched project
-slugs are validation errors.
+Unknown task types, missing paths, or mismatched project slugs are validation
+errors. Repeated entries are deduplicated during note selection; the validator
+does not reject them as duplicates.
 
 ## Relations
 

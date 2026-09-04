@@ -1,5 +1,7 @@
 # Sandbox and read-only deployments
 
+English | [日本語](sandbox.ja.md)
+
 Portable Agent Brain must work when an agent has a different home directory,
 runs in a container, or can read only part of the host filesystem.
 

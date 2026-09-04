@@ -1,6 +1,6 @@
 # A beginner's guide to Portable Agent Brain
 
-English | [日本語](guide.ja.md) | [Back to README](../README.md)
+English | [日本語](guide.ja.md) | [All documentation](README.md) | [Back to README](../README.md)
 
 You do not need to know how to program to follow this guide. If an AI sent you
 here, that is fine too. The short version is: this tool keeps useful notes in a

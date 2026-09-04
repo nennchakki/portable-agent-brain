@@ -65,7 +65,8 @@ An example with existing notes in Obsidian. A new library starts empty.
 - The CLI does not import past conversations. `--history-source` only returns
   guidance. With the prompt above, the AI reads and summarizes history you approve.
 
-For more detail, read the [beginner setup and usage guide](docs/guide.md) or the
+For more detail, use the [documentation index](docs/README.md), or read the
+[beginner setup and usage guide](docs/guide.md) or the
 [features and commands guide](docs/features.md). The latter also explains
 [how this differs from Hermes-Agent](docs/features.md#hermes-agent-and-portable-agent-brain).
 Both guides have Japanese versions.

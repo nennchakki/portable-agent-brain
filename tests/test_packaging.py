@@ -11,6 +11,8 @@ from pathlib import Path
 
 from _build_backend.backend import normalize_sdist_archive
 from tests.helpers import REPOSITORY
+from tools.brain.cli import _default_adapter
+from tools.graph import is_knowledge
 
 
 class PackagingTests(unittest.TestCase):
@@ -33,6 +35,20 @@ class PackagingTests(unittest.TestCase):
         for directory in ("adapters", "docs", "examples", "prompts", "schemas", "templates"):
             expected.update(path for path in (REPOSITORY / directory).rglob("*") if path.is_file())
         self.assertEqual(expected - covered, set())
+
+    def test_translated_guides_are_data_not_runtime_knowledge(self) -> None:
+        """Package translated adapters while keeping the English runtime entry point."""
+        configuration = tomllib.loads((REPOSITORY / "pyproject.toml").read_text(encoding="utf-8"))
+        groups = configuration["tool"]["setuptools"]["data-files"]
+        self.assertEqual(groups["share/portable-agent-brain/adapters"], ["adapters/*.md"])
+        self.assertEqual(_default_adapter(), REPOSITORY / "adapters/external-brain.md")
+        translated_guides = (
+            "adapters/external-brain.ja.md",
+            "schemas/README.ja.md",
+            "templates/library/README.ja.md",
+            "examples/demo-project/README.ja.md",
+        )
+        self.assertTrue(all(not is_knowledge(path) for path in translated_guides))
 
     def test_sdist_normalizer_removes_local_archive_ownership(self) -> None:
         """Prevent local account names and numeric IDs from leaking through tar headers."""
