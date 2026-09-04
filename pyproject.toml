@@ -35,7 +35,7 @@ brain = "tools.brain.cli:main"
 include = ["tools", "tools.*"]
 
 [tool.setuptools.data-files]
-"share/portable-agent-brain" = ["README.md", "LICENSE", "brain"]
+"share/portable-agent-brain" = ["README.md", "README.ja.md", "LICENSE", "brain"]
 "share/portable-agent-brain/adapters" = ["adapters/external-brain.md"]
 "share/portable-agent-brain/docs" = ["docs/*.md"]
 "share/portable-agent-brain/prompts" = ["prompts/*.md"]

@@ -26,6 +26,7 @@ class PackagingTests(unittest.TestCase):
                 covered.update(path for path in REPOSITORY.glob(pattern) if path.is_file())
         expected = {
             REPOSITORY / "README.md",
+            REPOSITORY / "README.ja.md",
             REPOSITORY / "LICENSE",
             REPOSITORY / "brain",
         }

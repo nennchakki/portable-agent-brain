@@ -1,5 +1,7 @@
 # Portable Agent Brain
 
+English | [日本語](README.ja.md)
+
 > Your agents are replaceable. Your knowledge should not be.
 
 Portable Agent Brain is a local-first, provider-independent knowledge layer for
@@ -97,6 +99,17 @@ Before publishing or packaging this repository, run:
 ```
 
 See [Getting started](docs/getting-started.md) for the complete first-run path.
+
+## History mining is not implemented
+
+In version 0.1.0, `setup --history-source` only checks the selected path and
+returns review guidance. It does not read, parse, or extract knowledge from
+past conversations. `learn-extract` works with a structured JSON summary
+already prepared by an agent or user; it is not a conversation-history importer.
+Other setup operations still run normally; this option does not make setup a
+dry run.
+See [Privacy](docs/privacy.md) for the boundary between task-end capture and
+future history mining.
 
 ## Public engine, private knowledge
 

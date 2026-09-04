@@ -1,5 +1,6 @@
 include LICENSE
 include README.md
+include README.ja.md
 include brain
 recursive-include _build_backend *.py
 recursive-include adapters *.md
