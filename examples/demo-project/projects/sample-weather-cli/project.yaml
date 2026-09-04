@@ -1,0 +1,18 @@
+schema_version: 1
+slug: sample-weather-cli
+node: projects/sample-weather-cli/sample-weather-cli.md
+project_type: software
+domains:
+  - command-line-tools
+  - synthetic-data
+status: active
+always_include: []
+task_include:
+  debugging:
+    - lessons/sample-weather-cli/cache-expiry.md
+  testing:
+    - lessons/sample-weather-cli/cache-expiry.md
+search_include:
+  - projects/sample-weather-cli/
+  - lessons/sample-weather-cli/
+  - concepts/cache-expiry.md

@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portable-agent-brain.example/schemas/task-summary.schema.json",
+  "title": "Portable Agent Brain task summary",
+  "type": "object",
+  "required": [
+    "project",
+    "task_type",
+    "task",
+    "outcome",
+    "new_findings",
+    "user_corrections",
+    "failed_approaches",
+    "successful_approaches"
+  ],
+  "properties": {
+    "project": {
+      "$ref": "#/$defs/slug"
+    },
+    "task_type": {
+      "$ref": "#/$defs/taskType"
+    },
+    "task": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300
+    },
+    "outcome": {
+      "enum": [
+        "success",
+        "partial",
+        "failure",
+        "cancelled"
+      ]
+    },
+    "new_findings": {
+      "$ref": "#/$defs/textList"
+    },
+    "user_corrections": {
+      "$ref": "#/$defs/textList"
+    },
+    "failed_approaches": {
+      "$ref": "#/$defs/textList"
+    },
+    "successful_approaches": {
+      "$ref": "#/$defs/textList"
+    },
+    "reusable_knowledge": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/$defs/candidate"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^(?:shared|[a-z0-9][a-z0-9-]*)$"
+    },
+    "taskType": {
+      "enum": [
+        "architecture",
+        "implementation",
+        "ui",
+        "debugging",
+        "testing",
+        "build",
+        "documentation",
+        "research",
+        "analysis",
+        "data",
+        "security"
+      ]
+    },
+    "textList": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      }
+    },
+    "shortStringList": {
+      "type": "array",
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 250
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "required": [
+        "type",
+        "title"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "fact",
+            "preference",
+            "constraint",
+            "lesson",
+            "procedure",
+            "decision"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[^\\r\\n\\[\\]<>]+$"
+        },
+        "project": {
+          "$ref": "#/$defs/slug"
+        },
+        "project_id": {
+          "$ref": "#/$defs/slug"
+        },
+        "confidence": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "source_type": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,60}$"
+        },
+        "domains": {
+          "$ref": "#/$defs/shortStringList"
+        },
+        "domain_ids": {
+          "$ref": "#/$defs/shortStringList"
+        },
+        "related": {
+          "$ref": "#/$defs/shortStringList"
+        },
+        "conflicts_with": {
+          "$ref": "#/$defs/shortStringList"
+        },
+        "statement": {
+          "$ref": "#/$defs/section"
+        },
+        "what_happened": {
+          "$ref": "#/$defs/section"
+        },
+        "root_cause": {
+          "$ref": "#/$defs/section"
+        },
+        "correct_approach": {
+          "$ref": "#/$defs/section"
+        },
+        "prevention": {
+          "$ref": "#/$defs/section"
+        },
+        "verification": {
+          "$ref": "#/$defs/section"
+        },
+        "context": {
+          "$ref": "#/$defs/section"
+        },
+        "decision": {
+          "$ref": "#/$defs/section"
+        },
+        "why": {
+          "$ref": "#/$defs/section"
+        },
+        "alternatives_considered": {
+          "$ref": "#/$defs/section"
+        },
+        "consequences": {
+          "$ref": "#/$defs/section"
+        },
+        "revisit_when": {
+          "$ref": "#/$defs/section"
+        },
+        "steps": {
+          "$ref": "#/$defs/section"
+        },
+        "evidence": {
+          "$ref": "#/$defs/section"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "fact",
+                  "preference",
+                  "constraint"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "statement"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "lesson"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "what_happened",
+              "root_cause",
+              "correct_approach",
+              "verification"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "procedure"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "steps",
+              "verification"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "decision"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "context",
+              "decision",
+              "why"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "section": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 16000
+    }
+  }
+}

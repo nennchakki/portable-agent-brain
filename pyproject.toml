@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "backend"
+backend-path = ["_build_backend"]
+
+[project]
+name = "portable-agent-brain"
+version = "0.1.0"
+description = "A local-first, provider-independent knowledge layer for AI agents"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "portable-agent-brain contributors"}]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Software Development :: Libraries",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/nennchakki/portable-agent-brain"
+Repository = "https://github.com/nennchakki/portable-agent-brain"
+Issues = "https://github.com/nennchakki/portable-agent-brain/issues"
+
+[project.scripts]
+brain = "tools.brain.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["tools", "tools.*"]
+
+[tool.setuptools.data-files]
+"share/portable-agent-brain" = ["README.md", "LICENSE", "brain"]
+"share/portable-agent-brain/adapters" = ["adapters/external-brain.md"]
+"share/portable-agent-brain/docs" = ["docs/*.md"]
+"share/portable-agent-brain/prompts" = ["prompts/*.md"]
+"share/portable-agent-brain/schemas" = ["schemas/*.json", "schemas/*.md"]
+"share/portable-agent-brain/templates" = ["templates/*.json"]
+"share/portable-agent-brain/templates/project" = ["templates/project/*"]
+"share/portable-agent-brain/templates/library" = ["templates/library/*.md"]
+"share/portable-agent-brain/templates/library/concepts" = ["templates/library/concepts/*.md"]
+"share/portable-agent-brain/templates/library/decisions" = ["templates/library/decisions/*.md"]
+"share/portable-agent-brain/templates/library/lessons" = ["templates/library/lessons/*.md"]
+"share/portable-agent-brain/templates/library/preferences" = ["templates/library/preferences/*.md"]
+"share/portable-agent-brain/templates/library/principles" = ["templates/library/principles/*.md"]
+"share/portable-agent-brain/templates/library/procedures" = ["templates/library/procedures/*.md"]
+"share/portable-agent-brain/templates/library/profiles" = ["templates/library/profiles/*.md"]
+"share/portable-agent-brain/templates/library/projects" = ["templates/library/projects/*.md"]
+"share/portable-agent-brain/templates/library/protocols" = ["templates/library/protocols/*.md"]
+"share/portable-agent-brain/templates/library/references" = ["templates/library/references/*.md"]
+"share/portable-agent-brain/templates/library/skills" = ["templates/library/skills/*.md"]
+"share/portable-agent-brain/templates/library/inbox/candidates" = [
+  "templates/library/inbox/candidates/.gitkeep",
+]
+"share/portable-agent-brain/examples/demo-project" = [
+  "examples/demo-project/*.md",
+  "examples/demo-project/*.json",
+]
+"share/portable-agent-brain/examples/demo-project/concepts" = [
+  "examples/demo-project/concepts/*.md",
+]
+"share/portable-agent-brain/examples/demo-project/lessons/sample-weather-cli" = [
+  "examples/demo-project/lessons/sample-weather-cli/*.md",
+]
+"share/portable-agent-brain/examples/demo-project/projects/sample-weather-cli" = [
+  "examples/demo-project/projects/sample-weather-cli/*",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

@@ -1,0 +1,34 @@
+# Operating-system and editor state
+.DS_Store
+.idea/
+.vscode/
+.obsidian/
+*~
+*.swp
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Local runtime state
+.cache/
+*.log
+*.bak
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+
+# A public engine checkout must not retain a live candidate inbox.
+/inbox/candidates/*
+!/inbox/candidates/.gitkeep

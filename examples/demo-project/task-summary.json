@@ -1,0 +1,34 @@
+{
+  "project": "sample-weather-cli",
+  "task_type": "debugging",
+  "task": "Prevent stale synthetic weather records from being displayed",
+  "outcome": "success",
+  "new_findings": [
+    "Cached records need an explicit capture time before age can be validated."
+  ],
+  "user_corrections": [],
+  "failed_approaches": [
+    "Checking only that the cache file existed accepted stale records."
+  ],
+  "successful_approaches": [
+    "Compare captured_at with the configured maximum age and test with a fixed clock."
+  ],
+  "reusable_knowledge": [
+    {
+      "type": "lesson",
+      "title": "Validate cached record age",
+      "confidence": "high",
+      "domains": [
+        "[[concepts/cache-expiry]]"
+      ],
+      "related": [
+        "[[projects/sample-weather-cli/sample-weather-cli]]"
+      ],
+      "what_happened": "A cache-existence check accepted a stale synthetic record.",
+      "root_cause": "The record had no capture time, so its age could not be validated.",
+      "correct_approach": "Store captured_at and compare it with the configured maximum age before reuse.",
+      "prevention": "Test fresh, boundary-age, and expired records with a fixed clock.",
+      "verification": "All three fixed-clock cache-age cases pass."
+    }
+  ]
+}

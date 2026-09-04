@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portable-agent-brain.example/schemas/knowledge-node.schema.json",
+  "title": "Portable Agent Brain knowledge node metadata",
+  "type": "object",
+  "required": [
+    "graph_version",
+    "id",
+    "type",
+    "status",
+    "authority"
+  ],
+  "properties": {
+    "graph_version": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*:[a-z0-9][a-z0-9._/-]*$"
+    },
+    "type": {
+      "enum": [
+        "principle",
+        "protocol",
+        "project-knowledge",
+        "project-rule",
+        "lesson",
+        "decision",
+        "reference",
+        "profile",
+        "concept",
+        "skill",
+        "fact",
+        "preference",
+        "constraint",
+        "procedure"
+      ]
+    },
+    "node_role": {
+      "enum": [
+        "project"
+      ]
+    },
+    "project_id": {
+      "$ref": "#/$defs/slug"
+    },
+    "concept_key": {
+      "$ref": "#/$defs/slug"
+    },
+    "skill_entrypoint": {
+      "$ref": "#/$defs/vaultPath"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "needs-verification",
+        "pending",
+        "rejected",
+        "superseded",
+        "archived"
+      ]
+    },
+    "authority": {
+      "enum": [
+        "canonical",
+        "verified",
+        "observed",
+        "candidate",
+        "rejected",
+        "superseded"
+      ]
+    },
+    "confidence": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "source_type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,60}$"
+    },
+    "candidate": {
+      "type": "boolean"
+    },
+    "review_status": {
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "superseded"
+      ]
+    },
+    "created": {
+      "type": "string",
+      "format": "date"
+    },
+    "last_observed": {
+      "type": "string",
+      "format": "date"
+    },
+    "evidence_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000
+    },
+    "fingerprint": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "task_type": {
+      "$ref": "#/$defs/taskType"
+    },
+    "aliases": {
+      "$ref": "#/$defs/stringList"
+    },
+    "domain_ids": {
+      "$ref": "#/$defs/stringList"
+    },
+    "evidence_signatures": {
+      "$ref": "#/$defs/stringList"
+    },
+    "project": {
+      "$ref": "#/$defs/relationList"
+    },
+    "domains": {
+      "$ref": "#/$defs/relationList"
+    },
+    "related": {
+      "$ref": "#/$defs/relationList"
+    },
+    "uses": {
+      "$ref": "#/$defs/relationList"
+    },
+    "depends_on": {
+      "$ref": "#/$defs/relationList"
+    },
+    "implements": {
+      "$ref": "#/$defs/relationList"
+    },
+    "prevents": {
+      "$ref": "#/$defs/relationList"
+    },
+    "caused_by": {
+      "$ref": "#/$defs/relationList"
+    },
+    "conflicts_with": {
+      "$ref": "#/$defs/relationList"
+    },
+    "supersedes": {
+      "$ref": "#/$defs/relationList"
+    },
+    "superseded_by": {
+      "$ref": "#/$defs/relationList"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "candidate"
+        ],
+        "properties": {
+          "candidate": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "review_status",
+          "evidence_count",
+          "last_observed"
+        ],
+        "properties": {
+          "authority": {
+            "enum": [
+              "candidate",
+              "rejected",
+              "superseded"
+            ]
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "rejected",
+              "superseded"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "node_role"
+        ],
+        "properties": {
+          "node_role": {
+            "const": "project"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "project_id"
+        ],
+        "properties": {
+          "type": {
+            "const": "project-knowledge"
+          },
+          "authority": {
+            "const": "canonical"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "concept"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "concept_key"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "skill"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "required": [
+          "skill_entrypoint"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": true,
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "vaultPath": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+    },
+    "wikilink": {
+      "type": "string",
+      "pattern": "^\\[\\[[^\\]\\r\\n]+\\]\\]$"
+    },
+    "relationList": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/wikilink"
+      }
+    },
+    "stringList": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256
+      }
+    },
+    "taskType": {
+      "enum": [
+        "architecture",
+        "implementation",
+        "ui",
+        "debugging",
+        "testing",
+        "build",
+        "documentation",
+        "research",
+        "analysis",
+        "data",
+        "security"
+      ]
+    }
+  }
+}

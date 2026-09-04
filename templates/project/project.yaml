@@ -1,0 +1,10 @@
+schema_version: 1
+slug: replace-me
+node: projects/replace-me/replace-me.md
+project_type: software
+domains: []
+status: active
+always_include: []
+task_include: {}
+search_include:
+  - projects/replace-me/

@@ -1,0 +1,11 @@
+{
+  "project": "replace-me",
+  "task_type": "implementation",
+  "task": "Describe the completed task in one bounded line",
+  "outcome": "success",
+  "new_findings": [],
+  "user_corrections": [],
+  "failed_approaches": [],
+  "successful_approaches": [],
+  "reusable_knowledge": []
+}

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://portable-agent-brain.example/schemas/project.schema.json",
+  "title": "Portable Agent Brain project policy",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "slug",
+    "node",
+    "project_type",
+    "domains",
+    "status",
+    "always_include",
+    "task_include",
+    "search_include"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "slug": {
+      "$ref": "#/$defs/slug"
+    },
+    "node": {
+      "$ref": "#/$defs/markdownPath"
+    },
+    "project_type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,60}$"
+    },
+    "domains": {
+      "$ref": "#/$defs/labelList"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "paused",
+        "archived"
+      ]
+    },
+    "always_include": {
+      "$ref": "#/$defs/markdownPathList"
+    },
+    "task_include": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/taskType"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/markdownPathList"
+      }
+    },
+    "search_include": {
+      "$ref": "#/$defs/vaultPathList"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "vaultPath": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+    },
+    "markdownPath": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/vaultPath"
+        },
+        {
+          "pattern": "\\.md$"
+        }
+      ]
+    },
+    "labelList": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      }
+    },
+    "vaultPathList": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/vaultPath"
+      }
+    },
+    "markdownPathList": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/markdownPath"
+      }
+    },
+    "taskType": {
+      "enum": [
+        "architecture",
+        "implementation",
+        "ui",
+        "debugging",
+        "testing",
+        "build",
+        "documentation",
+        "research",
+        "analysis",
+        "data",
+        "security"
+      ]
+    }
+  }
+}
