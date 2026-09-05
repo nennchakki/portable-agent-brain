@@ -515,6 +515,12 @@ def _validate_git_options(mode: GitMode, remote_url: str | None, remote_name: st
         if remote_url is None:
             raise SetupError("Remote Git mode requires an explicit remote URL")
         _validate_remote(remote_name, remote_url)
+        from .github import GitHubError, remote_repository_slug
+
+        try:
+            remote_repository_slug(remote_url)
+        except GitHubError as error:
+            raise SetupError(str(error)) from None
 
 
 def _preflight_git(root: Path, mode: GitMode, remote_url: str | None, remote_name: str) -> None:
@@ -533,6 +539,14 @@ def _preflight_git(root: Path, mode: GitMode, remote_url: str | None, remote_nam
     _validate_git_options(mode, remote_url, remote_name)
     if mode == "none":
         return
+    if mode == "remote":
+        from .github import GitHubError, verify_repository
+
+        assert remote_url is not None
+        try:
+            verify_repository(remote_url)
+        except GitHubError as error:
+            raise SetupError(str(error)) from None
     _git_executable()
     if not root.exists():
         if mode == "existing":
@@ -564,12 +578,13 @@ def configure_git(
 ) -> GitSetupResult:
     """Configure no-Git, local, existing, or explicit-remote Git usage.
 
-    No hosting provider is contacted. Remote mode only records the supplied URL.
+    Remote mode verifies private GitHub access before recording a bound target.
+    Other modes remain local-only and never authorize a managed push.
 
     Args:
         library: Initialized Library root.
         mode: ``none``, ``local``, ``existing``, or ``remote``.
-        remote_url: Required URL or local path for ``remote`` mode.
+        remote_url: Required github.com HTTPS URL for ``remote`` mode.
         remote_name: Remote name, normally ``origin``.
         home: Optional home override.
         environ: Optional environment mapping.
@@ -587,6 +602,15 @@ def configure_git(
         raise SetupError("Git setup requires a non-symlink Library directory")
     if mode == "none":
         return GitSetupResult(mode, False, (), ())
+    if mode == "remote":
+        from .github import GitHubError, connect
+
+        assert remote_url is not None
+        try:
+            connection = connect(root, remote_url, remote_name)
+        except GitHubError as error:
+            raise SetupError(str(error)) from None
+        return GitSetupResult(mode, connection.initialized, _git_remotes(root), ())
     is_repository = _is_repository_root(root)
     initialized = False
     if mode == "existing":
@@ -603,16 +627,6 @@ def configure_git(
     if mode == "local":
         if remotes:
             warnings.append("Existing Git remotes were preserved; none were contacted")
-    elif mode == "remote":
-        assert remote_url is not None
-        current = dict(remotes).get(remote_name)
-        if current is None:
-            added = _git_process(root, "remote", "add", remote_name, remote_url)
-            if added.returncode != 0:
-                raise SetupError("Git remote could not be added")
-        elif current != remote_url:
-            raise SetupError("Refusing to overwrite an existing Git remote URL")
-        remotes = _git_remotes(root)
     return GitSetupResult(mode, initialized, remotes, tuple(warnings))
 
 

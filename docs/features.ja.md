@@ -165,16 +165,18 @@ Obsidianでは自分のメモのフォルダを開きます。Markdownの本文�
 
 ## Git・保存忘れの通知・公開前チェック
 
-### Gitは保存先の設定まで。自動同期はしない
+### Gitの接続と明示的な送信
 
 | `setup --git-mode` | 何をするか |
 |---|---|
 | `none` | Git設定を変更しない。既存の同期を止める意味ではない |
 | `local` | 必要ならローカルのGit管理を始める。既存の送信先は残す |
 | `existing` | メモのフォルダ自体が、すでにGit管理の単位になっていることを確認する |
-| `remote` | 必要ならGit管理を始め、`--remote-url` の送信先を登録する。名前は `--remote-name`（既定 `origin`） |
+| `remote` | 既存GitHubのprivateと書き込み権限を検証し、必要ならGit管理を始めて `--remote-url` を登録する。名前は `--remote-name`（既定 `origin`） |
 
-いずれも自動のcommit、pull、pushは行いません。GitHub上のリポジトリを作ったり、非公開設定を確認したりする操作でもありません。Git自体の設定が途中で失敗した場合は、途中の状態を残して確認を求めます。安全のためにGit履歴を勝手に削除することはありません。
+いずれも自動のcommit、pull、pushやGitHub上のリポジトリ作成は行いません。`remote` はGitHub CLIによる認証と、github.comのprivateへのHTTPS接続を必要とします。Git設定が途中で失敗した場合は状態を残し、Git履歴を削除しません。
+
+`brain github connect` でprivateの接続先を登録し、`status` で再確認できます。`brain github push` は送信履歴のプレビュー、`--approve` を付けた操作が再検証後の明示送信です。[private GitHubへの保存](github-sync.ja.md)を参照してください。
 
 ### 保存の判断を促す通知
 

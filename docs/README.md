@@ -21,6 +21,7 @@ or give the setup prompt to your AI.
 | All features and commands, including the Hermes Agent comparison | [Features and commands](features.md) | [日本語](features.ja.md) |
 | Connect or disconnect an AI without replacing its settings | [Agent integration](agent-integration.md) | [日本語](agent-integration.ja.md) |
 | Ask an AI to check its supported connection method | [Connection prompt](../prompts/connect-agent.md) | [日本語](../prompts/connect-agent.ja.md) |
+| Connect and save to your own private GitHub repository | [Private GitHub saving](github-sync.md) | [日本語](github-sync.ja.md) |
 | Save useful findings after a task | [Saving notes](automatic-capture.md) | [日本語](automatic-capture.ja.md) |
 | Note types, links, and search priority | [Note formats](knowledge-model.md) | [日本語](knowledge-model.ja.md) |
 | Use notes from a container or a restricted environment | [Sandbox and read-only access](sandbox.md) | [日本語](sandbox.ja.md) |

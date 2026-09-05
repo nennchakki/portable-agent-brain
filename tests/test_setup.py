@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tools.brain.config import resolve_library_path, save_user_config
+from tools.brain.github import Repository
 from tools.brain.setup import (
     KNOWLEDGE_DIRECTORIES,
     SetupError,
@@ -224,40 +225,54 @@ class SetupTests(unittest.TestCase):
             self.assertFalse((library / ".git").exists())
 
     def test_git_existing_and_remote_preserve_existing_configuration(self) -> None:
-        """Explicit remote setup is repeatable and never overwrites another URL."""
+        """Private GitHub remote setup is repeatable and never overwrites another URL."""
 
         if shutil.which("git") is None:
             self.skipTest("Git is not installed")
         library = init_library(
             self.sandbox / "library", home=self.home, environ=self.environment
         ).path
-        remote = "https://example.invalid/fictional-library.git"
-        added = configure_git(
-            library,
-            "remote",
-            remote_url=remote,
-            home=self.home,
-            environ=self.environment,
-        )
-        self.assertIn(("origin", remote), added.remotes)
-        existing = configure_git(library, "existing", home=self.home, environ=self.environment)
-        self.assertFalse(existing.initialized)
-        repeated = configure_git(
-            library,
-            "remote",
-            remote_url=remote,
-            home=self.home,
-            environ=self.environment,
-        )
-        self.assertFalse(repeated.initialized)
-        with self.assertRaises(SetupError):
-            configure_git(
+        remote = "https://github.com/fixture-owner/fictional-library.git"
+        repository = Repository(12345, "fixture-owner/fictional-library")
+        with patch("tools.brain.github.verify_repository", return_value=repository):
+            added = configure_git(
                 library,
                 "remote",
-                remote_url="https://example.invalid/different.git",
+                remote_url=remote,
                 home=self.home,
                 environ=self.environment,
             )
+            self.assertIn(("origin", remote), added.remotes)
+            self.assertEqual(
+                (library / ".git/config")
+                .read_text(encoding="utf-8")
+                .count("brainRepositoryId = 12345"),
+                1,
+            )
+            existing = configure_git(library, "existing", home=self.home, environ=self.environment)
+            self.assertFalse(existing.initialized)
+            repeated = configure_git(
+                library,
+                "remote",
+                remote_url=remote,
+                home=self.home,
+                environ=self.environment,
+            )
+            self.assertFalse(repeated.initialized)
+            with (
+                patch(
+                    "tools.brain.github.verify_repository",
+                    return_value=Repository(98765, "fixture-owner/different"),
+                ),
+                self.assertRaises(SetupError),
+            ):
+                configure_git(
+                    library,
+                    "remote",
+                    remote_url="https://github.com/fixture-owner/different.git",
+                    home=self.home,
+                    environ=self.environment,
+                )
 
     def test_adapter_install_preserves_content_backs_up_and_is_idempotent(self) -> None:
         """Only one managed absolute reference is added to an existing file."""

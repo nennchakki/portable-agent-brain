@@ -230,8 +230,8 @@ Press Enter to choose `none` for now. Your notes stay as ordinary local files;
 setup does not add Git tracking to the notes folder.
 
 `local` creates a local Git repository without a remote destination. `existing`
-uses an existing Git repository, and `remote` connects an existing remote
-address you supply. None of these choices creates a GitHub repository for
+uses an existing Git repository, and `remote` verifies private GitHub access
+through GitHub CLI and binds the existing HTTPS address you supply. None of these choices creates a GitHub repository for
 you. If the notes folder already has Git or synchronization configured,
 choosing `none` does not erase that configuration.
 
@@ -397,7 +397,9 @@ Never upload the notes folder to this public repository.
 If you use Git, a **commit** records a version locally. A **push** sends
 commits to a remote repository. These are different operations. The ordinary
 note-saving workflow does not automatically commit or push notes. A private
-remote still needs a review of its access and of what you are sending.
+remote still needs a review of its access and of what you are sending. The
+[private GitHub workflow](github-sync.md) checks access and offers an explicit
+preview followed by an approved push; it does not create local commits.
 
 ### Updating or stopping use
 

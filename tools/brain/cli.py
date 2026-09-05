@@ -6,10 +6,11 @@ import argparse
 import importlib.metadata
 import json
 import os
+import shlex
 import sys
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from tools.validate import run_checks
 
@@ -23,6 +24,9 @@ from .release import load_denylist, release_check
 from .search import search
 from .setup import SetupError, SetupOptions, init_library, run_setup
 from .tasking import TASK_TYPES
+
+if TYPE_CHECKING:
+    from .github import Connection, PushPlan
 
 ENGINE_ROOT = Path(__file__).resolve().parents[2]
 
@@ -152,6 +156,21 @@ def parser() -> argparse.ArgumentParser:
         "capture-hook", help="check the note-saving result marker at task end"
     )
     hook.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
+    github = commands.add_parser(
+        "github", help="connect and send notes to private GitHub repositories"
+    )
+    github_commands = github.add_subparsers(dest="github_command", required=True)
+    for name in ("connect", "status", "push"):
+        command = github_commands.add_parser(name)
+        _library_argument(command)
+        command.add_argument("--remote", default="origin")
+        command.add_argument("--json", action="store_true")
+        if name == "connect":
+            command.add_argument("--repo", required=True, help="existing private owner/repository")
+        elif name == "push":
+            command.add_argument(
+                "--approve", help="send only the exact plan from a reviewed preview"
+            )
     return result
 
 
@@ -178,6 +197,72 @@ def _print(value: Any, *, as_json: bool) -> None:
             print(f"{key}: {item}")
     else:
         print(converted)
+
+
+def _github_connection_lines(connection: Connection) -> list[str]:
+    """Render the verified destination, without reading authentication material."""
+    lines = [
+        f"接続先: github.com/{connection.repository.full_name} (private: 確認済み)",
+        f"Git remote: {connection.remote}",
+        f"repository ID: {connection.repository.repository_id}",
+    ]
+    if connection.initialized:
+        lines.append("ローカルGit: 初期化しました")
+    return lines
+
+
+def _print_github(value: Connection | PushPlan, *, command: str, as_json: bool) -> None:
+    """Display the full preview and distinguish it from an explicit completed push."""
+    from .github import Connection
+
+    if as_json:
+        _print(value, as_json=True)
+        return
+    if isinstance(value, Connection):
+        print("\n".join(_github_connection_lines(value)))
+        print("内容は送信していません。" if command == "connect" else "接続状態を再確認しました。")
+        return
+    print("\n".join(_github_connection_lines(value.connection)))
+    print(f"branch: {value.branch}")
+    if value.pushed:
+        print("送信済み: 確認済みの private GitHub 接続先へ push しました。")
+        print(f"outgoing commits: {len(value.commits)}")
+        print(f"reviewed files: {len(value.files)}")
+        return
+    if not value.commits:
+        print("送信するコミットはありません。GitHubの対象ブランチと一致しています。")
+        return
+    print("GitHub push preview（未送信）")
+    print(f"outgoing commits ({len(value.commits)}):")
+    for commit in value.commits:
+        print(f"  {commit}")
+    print(f"reviewed files ({len(value.files)}):")
+    for path in value.files:
+        print(f"  {path}")
+    print("patch (全文):")
+    print(value.patch, end="" if value.patch.endswith("\n") else "\n")
+    source_entrypoint = ENGINE_ROOT / "brain"
+    entrypoint = (
+        [str(source_entrypoint)]
+        if source_entrypoint.is_file()
+        else [sys.executable, "-m", "tools.brain"]
+    )
+    approve_command = shlex.join(
+        [
+            *entrypoint,
+            "github",
+            "push",
+            "--library",
+            value.connection.library,
+            "--remote",
+            value.connection.remote,
+            "--approve",
+            value.approval,
+        ]
+    )
+    print(f"approval SHA-256: {value.approval}")
+    print("差分とコミット履歴を確認後、次のコマンドで送信してください:")
+    print(approve_command)
 
 
 def _selected_library(value: str | None) -> Path:
@@ -322,6 +407,20 @@ def main(argv: list[str] | None = None) -> int:
             _print(_setup(arguments), as_json=arguments.json)
             return 0
         library = _selected_library(arguments.library)
+        if arguments.command == "github":
+            from .github import connect, connection_status, prepare_push, push
+
+            _require_external_library(library)
+            if arguments.github_command == "connect":
+                value = connect(library, arguments.repo, arguments.remote)
+            elif arguments.github_command == "status":
+                value = connection_status(library, arguments.remote)
+            elif arguments.approve:
+                value = push(library, arguments.approve, arguments.remote)
+            else:
+                value = prepare_push(library, arguments.remote)
+            _print_github(value, command=arguments.github_command, as_json=arguments.json)
+            return 0
         if arguments.command == "init":
             _require_external_library(library)
             _print(init_library(library), as_json=arguments.json)

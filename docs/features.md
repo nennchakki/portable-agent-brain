@@ -280,12 +280,16 @@ worked examples in `examples/demo-project/`.
 | `none` | Leaves Git settings unchanged; does not stop existing synchronization |
 | `local` | Initializes local Git tracking if needed; preserves existing remotes |
 | `existing` | Checks that the notes folder itself is already a Git repository root |
-| `remote` | Initializes Git if needed and registers `--remote-url` as a destination. Its name is `--remote-name`, defaulting to `origin` |
+| `remote` | Verifies an existing private GitHub repository and write access, initializes Git if needed, and binds `--remote-url` under `--remote-name` (default `origin`) |
 
-None of these modes automatically commits, pulls, or pushes. They do not
-create a GitHub repository or verify that a destination is private. If Git
-configuration fails partway through, the tool leaves the partial state for
-inspection. It does not delete Git history as a cleanup step.
+None of these modes automatically commits, pulls, or pushes, and none creates a
+GitHub repository. Remote mode now requires GitHub CLI authentication and a
+private github.com HTTPS target. If Git configuration fails partway through,
+the tool preserves the state for inspection rather than deleting Git history.
+
+`brain github connect` binds an existing private target; `status` checks it again.
+`brain github push` previews outgoing history, and `--approve` sends only the
+reviewed plan after fresh checks. See [private GitHub saving](github-sync.md).
 
 ### Reminders to consider saving notes
 
