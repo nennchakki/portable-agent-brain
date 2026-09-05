@@ -174,8 +174,9 @@ Git is optional. These are all valid deployments:
 - An existing private remote under your control.
 
 Do not put a real knowledge library in the public engine repository. If you add
-a remote, confirm that it is private before the first push and inspect the
-staged files for secrets.
+a remote, use [the private GitHub connection and preview workflow](github-sync.md).
+It verifies privacy and write access before binding or sending; inspect the full
+outgoing history for secrets before approving a push.
 
 ## 10. Run release safety checks
 

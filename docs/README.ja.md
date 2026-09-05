@@ -19,6 +19,7 @@
 | 全機能とコマンド、Hermes-Agentとの違い | [機能・コマンドの解説](features.ja.md) | [English](features.md) |
 | 既存の設定を残してAIを接続・解除する | [AIごとの接続方法](agent-integration.ja.md) | [English](agent-integration.md) |
 | AIに正式な接続方法を調べてもらう | [接続用プロンプト](../prompts/connect-agent.ja.md) | [English](../prompts/connect-agent.md) |
+| 自分のprivate GitHubへ接続し、確認して送る | [private GitHubへの保存](github-sync.ja.md) | [English](github-sync.md) |
 | 作業後に役立つことをメモへ残す | [作業後のメモの保存](automatic-capture.ja.md) | [English](automatic-capture.md) |
 | メモの種類、リンク、検索時の優先順 | [メモの書式](knowledge-model.ja.md) | [English](knowledge-model.md) |
 | コンテナやアクセス制限のある環境から使う | [隔離された実行環境](sandbox.ja.md) | [English](sandbox.md) |

@@ -48,6 +48,11 @@ Portable Agent Brain supports local-only use. If you want backup or multi-device
 synchronization, initialize the knowledge library as its own repository and use
 a private remote under your control.
 
+The [managed GitHub workflow](github-sync.md) verifies private visibility,
+write access, repository identity, and the outgoing commits. It refuses public
+or unverifiable targets and does not change their visibility. These checks do
+not govern direct Git use or a later visibility change on GitHub.
+
 Before the first push:
 
 1. Confirm the remote is private.

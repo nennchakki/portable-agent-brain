@@ -59,7 +59,7 @@ An example with existing notes in Obsidian. A new library starts empty.
 
 - Knowledge stays in a separate local folder. This public repository contains
   none of my personal knowledge or conversation history.
-- Git synchronization is optional. Use a private repository if you want a backup.
+- Git synchronization is optional. Connect to your own private GitHub repository and review the contents before sending: [English guide](docs/github-sync.md) · [日本語](docs/github-sync.ja.md).
 - Saved notes are for reference until a person reviews them. The AI does not
   turn them into rules for future work on its own.
 - The CLI does not import past conversations. `--history-source` only returns
